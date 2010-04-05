@@ -51,23 +51,23 @@ class State(object):
         return self._label_set.to_int(self.mlabel)
     
     @classmethod
-    def from_int(ind, label_set, image_array ):
+    def from_int(cls, ind, label_set, image_array ):
         """Creates and returns a state object corresponding to the given int
         
         """
         rowc = float(image_array.shape[0])
         
         el_multiplier = (rowc/2) * (rowc+1)
-        el_num = math.floor(ind/( el_multiplier ))
-        ind = el_multiplier * el_num
-        
+        el_num = int(math.floor(ind/( el_multiplier )))
+        ind -= el_multiplier * el_num
         
         a = -.5
-        b = (rowc - .5)
-        c = (rowc - ind )
-        i = math.floor(( -b + math.sqrt(math.pow(b,2) - 4*a*c) )/(2*a)   )
+        b = (rowc + .5)
+        c = -ind 
+        i = math.floor(( -b + math.sqrt(math.pow(b,2) - 4*a*c) )/(2*a) )
+        ind = ind - i * (-.5 * i + rowc + .5 )
         
-        #j = ind - i
+        j = ind + i
         
         return State(i, j, label_set.middle[el_num], label_set, image_array)
     

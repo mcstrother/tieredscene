@@ -17,7 +17,7 @@ class TestState(unittest.TestCase):
         
         
 
-    def testAsInt(self):
+    def test_as_int(self):
         test_list =[]
         for el in self.label_set.middle:
             for i in xrange(0, 3):
@@ -25,7 +25,13 @@ class TestState(unittest.TestCase):
                     state = State(i, j, el, self.label_set, self.image_array)
                     test_list.append(state.as_int())
         self.assertEqual(test_list, range(18))
-        
+    
+    def test_from_int(self):
+        test_list = []
+        for x in range(18):
+            state = State.from_int(x, self.label_set, self.image_array)
+            test_list.append(state.as_int())
+        self.assertEqual(test_list, range(18))
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
