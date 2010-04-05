@@ -1,0 +1,6 @@
+syntax: glob
+.pydev*
+.project
+*~
+#~#
+*.pyc
