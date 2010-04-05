@@ -17,7 +17,7 @@ class TestState(unittest.TestCase):
         
         
 
-    def testInit(self):
+    def testAsInt(self):
         test_list =[]
         for el in self.label_set.middle:
             for i in xrange(0, 3):
