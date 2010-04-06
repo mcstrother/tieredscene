@@ -13,3 +13,11 @@ class Pixel(object):
         self._image = image
         self._column = column
         self._row = row
+        
+    @property
+    def column(self):
+        return self._column
+    
+    @property
+    def row(self):
+        return self._row
