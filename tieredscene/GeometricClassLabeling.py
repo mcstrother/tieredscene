@@ -16,7 +16,7 @@ gcl_label_set = LabelSet.LabelSet(['L','C','R'], 'T', 'B')
 class GCLDataLossFunction(DataLossFunction.DataLossFunction):
     
     def __call__(self):
-        return 0 #TODO: fill this in using the per pixel class confidences from reference 9 from the paper
+        raise NotImplementedError("TODO: fill this in using the per pixel class confidences from reference 9 from the paper")
 
 class GCLSmoothnessLossFunction(SmoothnessLossFunction.SmoothnessLossFunction):
     _label_set = gcl_label_set
