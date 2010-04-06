@@ -87,6 +87,16 @@ class State(object):
         
         return (i_term + j_term + el_term)
         
+    @classmethod
+    def count_states(cls, image_array, label_set):
+        """Return the number of valid states  for this image_arry and label_set
         
-        
+        Since a "state" is defined by i, j, and mlabel,
+        the total number of valid states is equal to the
+        total number of labels (including the top and the bottom)
+        times the total number of valid i,j pairs.
+        """
+        el = len(label_set.middle)
+        r = image_array.shape[0]
+        return el * r/2.0*(r+1)
         

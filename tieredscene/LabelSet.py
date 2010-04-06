@@ -49,3 +49,4 @@ class LabelSet(object):
         label is len(self.middle).  The bottom label is len(self.middle)+1
         """
         return self._label_number_dict[label]
+    
