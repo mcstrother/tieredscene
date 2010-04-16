@@ -19,6 +19,8 @@ class SmoothnessLossFunction(object):
             self.horizontal_loss(pixel1, label1, pixel2, label2)
         elif (pixel1.row == pixel2.row-1) and pixel1.column == pixel2.column:
             self.vertical_loss(pixel1, label1, pixel2, label2)
+        else:
+            raise ValueError('pixel1 must be either directly to the left or directly above pixel2')
             
     def vertical_loss(self, pixel1, label1, pixel2, label2):
         raise NotImplementedError()
