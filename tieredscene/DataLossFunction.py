@@ -24,7 +24,7 @@ class DataLossFunction(object):
     
     def __init__(self):
         if self._label_set is None:
-            raise NotImplementedError("Subclasses of SmoothnessLossFunction must define a '_label_set' class variable.")
+            raise NotImplementedError("Subclasses of DataLossFunction must define a '_label_set' class variable.")
     
     
     
