@@ -33,11 +33,9 @@ class LabelSet(object):
     @property
     def top(self):
         return self._top
-    
     @property
     def bottom(self):
         return self._bottom
-    
     @property
     def middle(self):
         return self._middle
@@ -67,3 +65,12 @@ class LabelSet(object):
         """Returns the number of labels in the set
         """
         return len(self._middle)+2
+    
+    @property
+    def all_labels(self):
+        """A generator object that yields all the labels
+        in sorted order.
+        """
+        label_list = self._middle + self._top + self._bottom
+        for label in label_list:
+            yield label
