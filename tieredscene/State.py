@@ -15,8 +15,8 @@ class State(object):
         
         Paramters:
         ---------
-        i : the top-middle boundary
-        j : the middle-bottom boundary
+        i : the top-middle boundary (pixel i is included in middle)
+        j : the middle-bottom boundary (pixel j is included in bottom)
         mlabel : the label assigned to the middle region
         label_set : the label set from which mlabel is drawn
         image : a 2d array representing the image on which the DP algorithm is being run
