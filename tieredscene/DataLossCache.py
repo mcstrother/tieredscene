@@ -25,19 +25,20 @@ class DataLossCache(object):
         loss_function : A DataLossFunction object which defines
             the data loss function that is to be used
         '''
+        #precompute a "loss-image" for each label
         loss_images = numpy.empty((image_array.shape[0], 
                                   image_array.shape[1], 
                                   loss_function.label_set.get_label_count()))
-        self._integral = numpy.empty((image_array.shape[0], 
-                                      image_array.shape[1], 
-                                      loss_function.label_set.get_label_count()))
-        #precompute a "loss-image" for each label
+        
         for label_num, label in enumerate(loss_function.label_set.all_labels):
             for col in xrange(image_array.shape[1]):
                 for row in xrange(image_array.shape[0]):
                     pixel = Pixel.Pixel(image_array, col, row)
                     loss_images[row, col, label_num] = loss_function(pixel, label)
         #compute running sums over all columns of each loss-image
+        self._integral = numpy.empty((image_array.shape[0], 
+                                      image_array.shape[1], 
+                                      loss_function.label_set.get_label_count()))
         for label_num, label in enumerate(loss_function.label_set.all_labels):
             self._integral[:,:,label_num] = numpy.cumsum( loss_images[:,:,label_num], axis=0 )
         
