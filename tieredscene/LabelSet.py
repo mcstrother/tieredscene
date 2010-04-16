@@ -42,7 +42,7 @@ class LabelSet(object):
     def middle(self):
         return self._middle
     
-    def to_int(self,label):
+    def label_to_int(self,label):
         """Returns a unique int corresponding to the label in this set 
         
         The middle labels are numbered 0 to len(self.middle)-1.  The top
@@ -50,3 +50,20 @@ class LabelSet(object):
         """
         return self._label_number_dict[label]
     
+    def int_to_label(self, i):
+        """Given an int between 0 and len(self.middle)+1 inclusive, returns
+        a corresponding label.
+        
+        See doctring of label_to_int for description of label-int mapping.
+        """
+        if i < len(self._middle):
+            return self._middle[i]
+        elif i == len(self._middle):
+            return self._top
+        else:
+            return self._bottom
+
+    def get_label_count(self):
+        """Returns the number of labels in the set
+        """
+        return len(self._middle)+2
