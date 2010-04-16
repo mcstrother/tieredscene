@@ -20,6 +20,13 @@ class DataLossFunction(object):
     a smoothness loss function may take into account the 
     intensities and labels of neighboring pixels.
     """
+    _label_set = None
+    
+    def __init__(self):
+        if self._label_set is None:
+            raise NotImplementedError("Subclasses of SmoothnessLossFunction must define a '_label_set' class variable.")
+    
+    
     
     def __call__(self, pixel, label):
         """
