@@ -9,8 +9,8 @@ class Pixel(object):
     Object representing a pixel in an image
     """
     
-    def __init__(self, image, column, row):
-        self._image = image
+    def __init__(self, image_array, column, row):
+        self._image_array = image_array
         self._column = column
         self._row = row
         
