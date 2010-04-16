@@ -23,7 +23,7 @@ class DataLossCache(object):
         image_array : a 2d numpy ndarray representing the image
             being processed
         loss_function : A DataLossFunction object which defines
-            the data loss function that 
+            the data loss function that is to be used
         '''
         loss_images = numpy.empty((image_array.shape[0], 
                                   image_array.shape[1], 

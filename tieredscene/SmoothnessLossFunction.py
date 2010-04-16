@@ -27,3 +27,7 @@ class SmoothnessLossFunction(object):
     
     def horizontal_loss(self, pixel1, label1, pixel2, label2):
         raise NotImplementedError()
+    
+    @property
+    def label_set(self):
+        return self._label_set

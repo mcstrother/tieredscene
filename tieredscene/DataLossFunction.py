@@ -33,4 +33,7 @@ class DataLossFunction(object):
         """
         raise NotImplementedError("Subclasses of DataLossFunction must override __call__")
 
+    @property
+    def label_set(self):
+        return self._label_set
 
