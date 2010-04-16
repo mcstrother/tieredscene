@@ -19,9 +19,7 @@ class GCLDataLossFunction(DataLossFunction.DataLossFunction):
     def __call__(self, pixel, label):
         raise NotImplementedError("TODO: fill this in using the per pixel class confidences from reference 9 from the paper")
     
-    @property
-    def label_set(self):
-        return self._label_set
+    
 
 class GCLSmoothnessLossFunction(SmoothnessLossFunction.SmoothnessLossFunction):
     _label_set = gcl_label_set
