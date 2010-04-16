@@ -23,6 +23,15 @@ class SmoothnessLossFunction(object):
             raise ValueError('pixel1 must be either directly to the left or directly above pixel2')
             
     def vertical_loss(self, pixel1, label1, pixel2, label2):
+        """Given pixel1 directly above pixel2, calculates the
+        vertical loss implied by assigning label1 to pixel1 and
+        label2 to pixel2.
+        
+        Note that subclasses of SmoothnessLossFunction must override
+        this function and must support a call to
+        vertical_loss(None, None, pixel, label), in order to calculate
+        loss for the top row of a given image.
+        """
         raise NotImplementedError()
     
     def horizontal_loss(self, pixel1, label1, pixel2, label2):

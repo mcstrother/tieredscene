@@ -48,6 +48,8 @@ class GCLSmoothnessLossFunction(SmoothnessLossFunction.SmoothnessLossFunction):
         """
         pixel1 should be immediately above pixel2
         """
+        if (pixel1 is None) and (label1 is None):
+            return 0
         w = self._w_coeff / self._vgrad[pixel1.row, pixel1.column]
         return w * int(label1 == label2)
         
