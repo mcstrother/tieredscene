@@ -37,18 +37,18 @@ class State(object):
     @property
     def i(self):
         return self._i
-    
     @property
     def j(self):
         return self._j
-    
     @property
     def mlabel(self):
         return self._mlabel 
-    
     @property
     def el(self):
         return self._label_set.to_int(self.mlabel)
+    @property
+    def label_set(self):
+        return self._label_set
     
     @classmethod
     def from_int(cls, ind, label_set, image_array ):
