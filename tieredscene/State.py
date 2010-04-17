@@ -45,7 +45,7 @@ class State(object):
         return self._mlabel 
     @property
     def el(self):
-        return self._label_set.to_int(self.mlabel)
+        return self._label_set.label_to_int(self.mlabel)
     @property
     def label_set(self):
         return self._label_set

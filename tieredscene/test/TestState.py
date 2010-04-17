@@ -8,7 +8,7 @@ import numpy
 from tieredscene.State import State
 from tieredscene.LabelSet import LabelSet
 
-class TestState(unittest.TestCase):
+class Test(unittest.TestCase):
 
 
     def setUp(self):
@@ -39,7 +39,7 @@ class TestState(unittest.TestCase):
             test_list.append(state.as_int())
         self.assertEqual(test_list, range(18))
         
-        
+suite = unittest.TestLoader().loadTestsFromTestCase(Test)
         
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
