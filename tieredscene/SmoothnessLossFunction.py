@@ -27,7 +27,7 @@ class SmoothnessLossFunction(object):
         vertical loss implied by assigning label1 to pixel1 and
         label2 to pixel2.
         
-        Note that subclasses of SmoothnessLossFunction must override
+        Subclasses of SmoothnessLossFunction must override
         this function and must support a call to
         vertical_loss(None, None, pixel, label), in order to calculate
         loss for the top row of a given image.
@@ -35,6 +35,16 @@ class SmoothnessLossFunction(object):
         raise NotImplementedError()
     
     def horizontal_loss(self, pixel1, label1, pixel2, label2):
+        """Given pixel1 directly to the left of pixel2, calculates
+        the horizontal loss implied by assigning label1 to pixel1
+        and label2 to pixel2.
+        
+        Subclasses of SmoothnessLossFunction must override
+        this function and must support a call to
+        horizontal_loss(None, None, pixel, label) in order
+        to calculate the loss for the leftmost row of a given
+        image.
+        """
         raise NotImplementedError()
     
     @property

@@ -41,6 +41,8 @@ class GCLSmoothnessLossFunction(SmoothnessLossFunction.SmoothnessLossFunction):
         """
         pixel1 should be immediately to the left of pixel2
         """
+        if (pixel1 is None) and (label1 is None):
+            return 0
         w = self._w_coeff / self._hgrad[pixel1.row, pixel1.column]
         return w * self._hloss_table[self._label_set.to_int( label1 ), self._label_set.to_int( label2) ]
     
