@@ -70,7 +70,10 @@ class LabelSet(object):
     def all_labels(self):
         """A generator object that yields all the labels
         in sorted order.
+        
+        It is guaranteed that 
+        [(num, label) for num,label in enumerate(self.all_labels)] == [(self.label_to_int(label),label) for label in self.all_labels]
         """
-        label_list = self._middle + self._top + self._bottom
+        label_list = self._middle + [self._top] + [self._bottom]
         for label in label_list:
             yield label
