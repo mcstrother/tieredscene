@@ -24,6 +24,10 @@ class DataLossCache(object):
             being processed
         loss_function : A DataLossFunction object which defines
             the data loss function that is to be used
+            
+        Note that this function runs in O(n*m*K) time,
+        where n = # of rows in the image, m = # of columns
+        in the image, and K = the number of labels
         '''
         #precompute a "loss-image" for each label
         loss_images = numpy.empty((image_array.shape[0], 
@@ -42,8 +46,14 @@ class DataLossCache(object):
         for label_num, label in enumerate(loss_function.label_set.all_labels):
             self._integral[:,:,label_num] = numpy.cumsum( loss_images[:,:,label_num], axis=0 )
         
-    def get_data_loss(self, state, column):
-        """
+    def get_loss(self, state, column):
+        """Returns the total data loss implied
+        by assigning a the given state to the given
+        column.
+        
+        Note that this method always returns in constant
+        time.
+        
         Parameters
         ----------
         state : a state object
@@ -51,11 +61,11 @@ class DataLossCache(object):
         
         Returns
         -------
-        loss : the loss implied by assigning
+        loss : the loss implied by assigning state to column
         """
         ls = state.label_set
         loss =  self._integral[state.i-1 , column, ls.label_to_int(ls.top) ] #top loss
         loss += self._integral[state.j-1, column, state.el] - self._integral[state.i-1, column, state.el] # middle loss 
-        loss += self._integral[state.j, column, ls.label_to_int(ls.bottom)] - self._integral[state.j-1, column, ls.label_to_int(ls.bottom)] # bottom loss
+        loss += self._integral[-1, column, ls.label_to_int(ls.bottom)] - self._integral[state.j-1, column, ls.label_to_int(ls.bottom)] # bottom loss
         return loss
         
