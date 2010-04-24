@@ -57,7 +57,7 @@ class VerticalSmoothnessLossCache(object):
             self._integral[:,:,label_num] = numpy.cumsum( loss_images[:,:,label_num], axis=0 )
         #save references for later.  needed in self.get_loss
         self._loss_function = loss_function
-        self._image_array
+        self._image_array = image_array
         
         def get_loss(self, state, column):
             """Returns the total vertical smoothness loss implied
