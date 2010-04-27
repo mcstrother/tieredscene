@@ -38,12 +38,28 @@ class LossTable(object):
         self._table = numpy.zeros((State.count_states(image_array, self._label_set), image_array.shape[1]  ) )
         self._table[:, 0] = [self._U(State.from_int(i, self._label_set, self._image_array), 0) for i in range(self._table.shape[0] ) ] #init the first column of the table
         self._trace = numpy.zeros((State.count_states(image_array, self._label_set), image_array.shape[1]  ) ) # the number in each cell corresponds to the optimal state number for the preceding column
+        n = self._image_array.shape[0]
         
         for column in xrange(1, self._table.shape[1]):
             for this_label in self._label_set.all_labels:
                 for previous_label in self._label_set.all_labels:
-                    for relative_positioning in xrange(6):
-                        pass
+                    fs = self._get_Fs(column, previous_label, this_label)
+                    for i in xrange(n):
+                        for j in xrange(i-1, n):
+                            curr_state = State(i, j, this_label, self._label_set, self._image_array)
+                            best_prev_state= None
+                            best_prev_state_value = None
+                            for rel_pos in xrange(6):
+                                f_out = fs[rel_pos](i,j)
+                                curr_value = f_out[0]
+                                if best_prev_state is None or curr_value < best_prev_state_value:
+                                    ib = f_out[1]
+                                    jb = f_out[2]
+                                    best_prev_state = State(ib, jb, previous_label, self._label_set, self._image_array)
+                                    best_prev_state_value = curr_value
+                            self._table[curr_state.as_int(), column] = best_prev_state_value + self._U(curr_state, column)
+                            self._trace[curr_state.as_int(), column] = best_prev_state
+                                
         
     def _U(self, state, column):
         """Returns the sum of the vertical smoothness loss and the data smoothness loss the given state/column pair
@@ -54,6 +70,94 @@ class LossTable(object):
         """
         return self._vslc.get_loss(state, column) + self._dlc.get_loss(state, column)
         
+    
+    
+    def _get_E_prime(self, col, previous_label, Ib):
+        """Calculate E' in O(n^2) time as described in the Felzenszwalb paper
+        
+        Runs in O(n^2) time.
+        
+        Parameters
+        ----------
+        
+        Returns
+        -------
+        Ep : a function which takes x and jb as parameters and returns a 2-tuple in O(1) time.
+            x can be either i, j, or jb, depending on which varialbe immediately follows ib
+            in the relative positioning of i, j, ib, and jb. For example, if the relative postioning
+            is ib<=i<=jb<=j, x should = i.
+            The first value in the tuple is the min over all ib <= i of E[ib, jb] + Ib(ib).
+            The second value in the tuple is the value of ib that yields the min.
+        """
+        #ln1 = self._label_set.label_to_int(previous_label)
+        #ln2 = self._label_set.label_to_int(this_label)
+        n = self._image_array.shape[0]
+        
+        
+        ep_table = [None] * n
+        ep_ind_table = [None] * n
+        for jb in xrange(n):
+            min_ind_arr = numpy.empty(jb+1)
+            min_val_arr = numpy.empty(jb+1)
+            for ib in xrange(jb+1):
+                previous_state = State(ib, jb, previous_label, self._label_set, self._image_array)
+                curr_val = self._table[previous_state.as_int(), col-1 ] + Ib(ib)
+                if (ib == 0) or curr_val < min_val_arr[ib-1]:
+                    min_val_arr[ib] = curr_val
+                    min_ind_arr[ib] = ib
+                else:
+                    min_val_arr[ib]= min_val_arr[ib-1]
+                    min_ind_arr[ib] = min_ind_arr[ib-1]
+            ep_table[jb] = min_val_arr
+            ep_ind_table[jb] = min_ind_arr
+        Ep = lambda i, jb: (ep_table[jb][i], ep_ind_table[jb][i] )
+        return Ep
+        
+    
+    def _get_h(self, Ep, Jb):
+        """Calculate h as described in equation 22 of the Felzenszwalb paper
+        
+        Runs in O(n^2) time.
+        
+        Parameters
+        ----------
+        `Ep` : the Ep function returned by self._get_E_prime
+        `Jb` : the Jb function returned by self._get_decoupled functions
+        
+        Returns
+        -------
+        `h` : A function which takes two ints i and j and returns a 3-tuple in O(1) time.
+            The first value in the tuple is the running min of all jb in [i, j]of Jb(jb)+Ep(i,jb).
+            The second value is the value of jb that yields the min.
+            The third value is the value of ib that yields the min for the given jb (as returned by the Ep function)
+        """
+        n = self._image_arr.shape[0]
+        h_table = [None] * n
+        h_ind_table = [None]*n
+        ep_ind_table = [None]*n
+        for i in xrange(n):
+            min_ind_arr = numpy.empty(jb+1)
+            min_val_arr = numpy.empty(jb+1)
+            ep_min_ind_arr= numpy.empty(jb+1)
+            for jb in range(i, n+1):
+                curr_val = Jb(jb) + Ep(i, jb)[0]
+                if (jb == i) or curr_val < min_val_arr[jb-i-1]:
+                    min_val_arr[jb-i] = curr_val
+                    min_ind_arr[jb-i] = jb
+                    ep_min_ind_arr[jb-i]  = Ep(i,jb)[1]
+            h_table[i] = min_val_arr
+            h_ind_table = min_ind_arr
+        h = lambda i, j: (h_table[i][j-i], h_ind_table[i][j-i], ep_ind_table[i][j-i])
+        return h
+        
+    def _get_Fs(self, column, previous_label, this_label, relative_positioning):
+        out = [None] *6
+        for relative_positioning in xrange(6):
+            I, J, Ib, Jb, C = self._get_decoupled_functions(self._hslc, column, previous_label, this_label, relative_positioning)
+            Ep = self._get_E_prime(column, previous_label, Ib)
+            h = self._get_h(Ep, Jb)
+            out[relative_positioning] = lambda i,j : (I(i) + J(j) + C() + h(i,j)[0], h(i,j)[2], h(i,j)[1])
+        return out
     
     def _get_decoupled_functions(self, hslc, col, previous_label, this_label, positioning ):  #TODO: this is an awful method name
         """The horizontal loss between `column` and the previous column broken down into functions of i, j, ib, and jb
@@ -83,12 +187,12 @@ class LossTable(object):
             I(i) + J(j) + Ib(ib) + Jb(jb) + C()
         
         The mapping for the `positioning` parameter is:
-        1. i, j, ib, jb
-        2. i, ib, j, jb
-        3. i, ib, jb, j
-        4. ib, i, j, jb
-        5. ib, i, jb, j
-        6. ib, jb, i, j
+        0. i, j, ib, jb
+        1. i, ib, j, jb
+        2. i, ib, jb, j
+        3. ib, i, j, jb
+        4. ib, i, jb, j
+        5. ib, jb, i, j
         """
         table = hslc.table
         ln1 = self._label_set.label_to_int(previous_label)
@@ -99,39 +203,49 @@ class LossTable(object):
         
         
         C = lambda x: table[n, col, ln1, ln2] 
-        if positioning == 1:
+        if positioning == 0:
             I = lambda i: table[i, col, t, t] - table[i,col, t, ln2]
             J = lambda j: table[j, col, t, ln2] - table[j, col, t, b]
             Ib = lambda ib: table[ib, col, t, b] - table[ib, col, ln1, b]
             Jb = lambda jb: table[jb, col, ln1, b] - table[jb, col, b, b]
-        elif positioning == 2:
+        elif positioning == 1:
             I = lambda i: table[i, col, t,t] - table[i, col, t, ln2]
             Ib = lambda ib: table[ib, col, t, ln2] - table[ib, col, ln1, ln2]
             J = lambda j: table[j, col, ln1, ln2] - table[j, col, ln1, b]
             Jb = lambda jb: table[jb, col, ln1, b] - table[jb, col, b, b]
-        elif positioning == 3:
+        elif positioning == 2:
             I = lambda i: table[i, col, t, t] - table[i, col,t, ln2]
             Ib = lambda ib: table[ib, col, t, ln2] - table[ib, col, ln1, ln2]
             Jb = lambda jb: table[jb, col, ln1, ln2] - table[jb, col, b, ln2]
             J = lambda j: table[j, col, b, ln2] - table[j, col, b, b] 
-        elif positioning == 4:
+        elif positioning == 3:
             Ib = lambda ib: table[ib, col, t, t] - table[ib, col, ln1, t]
             I = lambda i: table[i, col, ln1, t] - table[i, col, ln1, ln2]
             J = lambda j: table[j, col, ln1, ln2] - table[j, col, ln1, b]
             Jb = lambda jb: table[jb, col, ln1, b] - table[jb, col, b, b]
-        elif positioning == 5:
+        elif positioning == 4:
             Ib = lambda ib: table[ib, col, t, t] - table[ib, col, ln1, t]
             I = lambda i: table[i,  col, ln1, t] - table[i, col, ln1, ln2]
             Jb = lambda jb: table[jb, col, ln1, ln2] - table[jb, col,b, ln2]
             J = lambda j: table[j, col, b, ln2] - table[j, col, b, b]
-        elif positioning == 6:
+        elif positioning == 5:
             Ib = lambda ib: table[ib, col, t, t] - table[ib, col, ln1, t]
             Jb = lambda jb: table[jb, col, ln1, t] - table[jb, col, b, t]
             I = lambda i: table[i, col, b, t] - table[i, col, b, ln2]
             J = lambda j: table[j, col, b, ln2] - table[j, col, b, b]
         else:
-            raise Exception("Invalid positioning.  Expected a number in range(1,6), but got " + str(positioning))
+            raise Exception("Invalid positioning.  Expected a number in range(6), but got " + str(positioning))
         return (I,J,Ib,Jb,C)
             
-        
+
+
+class _FTable(object):
+    
+    def __init__(self):
+        pass
+    
+    def get_best_prev_i_j(self, relative_positioning):
+    
+    
+    
         
