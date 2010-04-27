@@ -44,7 +44,7 @@ class HorizontalSmoothnessLossCache(object):
                 for row in xrange(image_array.shape[0]):
                     pixel = Pixel.Pixel(image_array, 0, row)
                     loss_images[row, 0, ln1, ln2] = loss_function.horizontal_loss(None, None, pixel, label2)
-        for ln1, label1 in enumerate(ls.all_labels): #initialize first column of each image
+        for ln1, label1 in enumerate(ls.all_labels): 
             for ln2, label2 in enumerate(ls.all_labels):
                 for row in xrange(1, image_array.shape[0]):
                     for column in xrange(1, image_array.shape[1]):
@@ -54,9 +54,18 @@ class HorizontalSmoothnessLossCache(object):
         #compute running sums down each column of each loss image
         self._integral = numpy.empty((image_array.shape[0], 
                                       image_array.shape[1], 
-                                      loss_function.label_set.get_label_count()))
-        for ln1, label1 in enumerate(ls.all_labels): #initialize first column of each image
+                                      ls.get_label_count(),
+                                      ls.get_label_count()))
+        for ln1, label1 in enumerate(ls.all_labels):
             for ln2, label2 in enumerate(ls.all_labels):
                 self._integral[:,:,ln1,ln2] = numpy.cumsum(loss_images[:,:,ln1,ln2], axis=0)
         
+        
+    @property
+    def table(self):
+        """
+        table[row, column, labelnumber1, labelnumber2] = the horizontal smoothness loss incurred by labeling rows 0
+            through `row` in column-1 labelnumber1 and labeling rows 0 through `row` in `column` labelnumber2
+        """
+        return self._integral
         
