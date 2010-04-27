@@ -9,6 +9,20 @@ from tieredscene.DataLossCache import DataLossCache
 from tieredscene.HorizontalSmoothnessLossCache import HorizontalSmoothnessLossCache
 from tieredscene.VerticalSmoothnessLossCache import VerticalSmoothnessLossCache
 
+class _UTable(object):
+    
+    def __init__(self, image_array, data_loss_func, smoothness_loss_func):
+        self._vslc = VerticalSmoothnessLossCache(self._image_array, smoothness_loss_func)
+        self._dlc = DataLossCache(self._image_array, data_loss_func)
+    
+    def get_loss(self, state, column):
+        return self._vslc.get_loss(state, column) + self._dlc.get_loss(state, column)
+
+
+
+
+
+
 class LossTable(object):
     '''
     Maintains a dynamic programming table of dimension
@@ -31,9 +45,8 @@ class LossTable(object):
             raise ValueError('data_loss_func and smoothness_loss_func must operate over the same label set')
         self._label_set = data_loss_func.label_set
         self._image_array = image_array
-        self._dlc = DataLossCache(self._image_array, data_loss_func)
         self._hslc = HorizontalSmoothnessLossCache(self._image_array, smoothness_loss_func)
-        self._vslc = VerticalSmoothnessLossCache(self._image_array, smoothness_loss_func)
+        self._u = _UTable(image_array, data_loss_func, smoothness_loss_func)
         #initialize the table and fill in the first column
         self._table = numpy.zeros((State.count_states(image_array, self._label_set), image_array.shape[1]  ) )
         self._table[:, 0] = [self._U(State.from_int(i, self._label_set, self._image_array), 0) for i in range(self._table.shape[0] ) ] #init the first column of the table
@@ -57,18 +70,9 @@ class LossTable(object):
                                     jb = f_out[2]
                                     best_prev_state = State(ib, jb, previous_label, self._label_set, self._image_array)
                                     best_prev_state_value = curr_value
-                            self._table[curr_state.as_int(), column] = best_prev_state_value + self._U(curr_state, column)
+                            self._table[curr_state.as_int(), column] = best_prev_state_value + self._u.get_loss(curr_state, column)
                             self._trace[curr_state.as_int(), column] = best_prev_state
-                                
         
-    def _U(self, state, column):
-        """Returns the sum of the vertical smoothness loss and the data smoothness loss the given state/column pair
-        
-        This sum is significant because it can be
-        calculated without considering the state
-        of any column other than the one specified.
-        """
-        return self._vslc.get_loss(state, column) + self._dlc.get_loss(state, column)
         
     
     
@@ -247,5 +251,5 @@ class _FTable(object):
     def get_best_prev_i_j(self, relative_positioning):
     
     
-    
+
         
