@@ -17,7 +17,8 @@ class GCLDataLossFunction(DataLossFunction.DataLossFunction):
     _label_set = gcl_label_set
     
     def __call__(self, pixel, label):
-        raise NotImplementedError("TODO: fill this in using the per pixel class confidences from reference 9 from the paper")
+        return 0
+        #raise NotImplementedError("TODO: fill this in using the per pixel class confidences from reference 9 from the paper")
     
     
 
