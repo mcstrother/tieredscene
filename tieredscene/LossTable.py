@@ -8,6 +8,8 @@ from tieredscene.State import State
 from tieredscene.DataLossCache import DataLossCache
 from tieredscene.HorizontalSmoothnessLossCache import HorizontalSmoothnessLossCache
 from tieredscene.VerticalSmoothnessLossCache import VerticalSmoothnessLossCache
+from tieredscene.utilities import running_min
+
 
 class _UTable(object):
     
@@ -34,44 +36,43 @@ class _FTables(object):
             self._fs[relative_positioning] = lambda i,j : (I(i) + J(j) + C() + h(i,j)[0], h(i,j)[2], h(i,j)[1])
         
     
-    def get_best_i_j(self, i, j, relative_positioning):
+    def get_best_prev_i_j(self, i, j, relative_positioning):
         return self._fs[relative_positioning](i,j)
 
-    def _get_E_prime(self, n, label_set, image_array, loss_table_column,  col, previous_label, Ib):
-        """Calculate E' in O(n^2) time as described in the Felzenszwalb paper
-        
-        Runs in O(n^2) time.
-        
-        Parameters
-        ----------
-        
-        Returns
-        -------
-        Ep : a function which takes x and jb as parameters and returns a 2-tuple in O(1) time.
-            x can be either i, j, or jb, depending on which varialbe immediately follows ib
-            in the relative positioning of i, j, ib, and jb. For example, if the relative postioning
-            is ib<=i<=jb<=j, x should = i.
-            The first value in the tuple is the min over all ib <= i of E[ib, jb] + Ib(ib).
-            The second value in the tuple is the value of ib that yields the min.
-        """
-        ep_table = [None] * n
-        ep_ind_table = [None] * n
-        for jb in xrange(n):
-            min_ind_arr = numpy.empty(jb+1)
-            min_val_arr = numpy.empty(jb+1)
-            for ib in xrange(jb+1):
-                previous_state = State(ib, jb, previous_label, label_set, image_array)
-                curr_val = loss_table_column[previous_state.as_int()] + Ib(ib)
-                if (ib == 0) or curr_val < min_val_arr[ib-1]:
-                    min_val_arr[ib] = curr_val
-                    min_ind_arr[ib] = ib
+    def _get_E_prime(self, n, label_set, image_array, loss_table_column,  col, previous_label, Ib, Jb, rel_pos,):
+        ep_list = [None]*6
+        if rel_pos >= 2 or rel_pos ==0:
+            ep_table = [None] * n
+            ep_ind_table = [None] * n
+            for jb in xrange(n):
+                val_arr = numpy.empty(jb+1)
+                for ib in xrange(jb+1):
+                    previous_state = State(ib, jb, previous_label, label_set, image_array)
+                    val_arr[ib]= loss_table_column[previous_state.as_int()] + Ib(ib)
+                if rel_pos == 2 or rel_pos ==0:
+                    ep_table[jb], ep_ind_table[jb] = running_min(val_arr, reverse = True)
                 else:
-                    min_val_arr[ib]= min_val_arr[ib-1]
-                    min_ind_arr[ib] = min_ind_arr[ib-1]
-            ep_table[jb] = min_val_arr
-            ep_ind_table[jb] = min_ind_arr
-        Ep = lambda i, jb: (ep_table[jb][i], ep_ind_table[jb][i] )
+                    ep_table[jb], ep_ind_table[jb] = running_min(val_arr)
+            if rel_pos == 5:
+                Ep = lambda jb: (ep_table[jb][jb], ep_ind_table[jb][jb] )
+            elif rel_pos == 2:
+                Ep = lambda i, jb: (ep_table[jb][i], ep_ind_table[jb][i]  )
+            elif rel_pos ==4 or rel_pos ==3:
+                Ep = lambda i, jb: (ep_table[jb][i], ep_ind_table[jb][i] )
+            elif rel_pos == 0:
+                Ep = lambda j, jb: (ep_table[jb][j], ep_ind_table[jb][j])
+        elif rel_pos == 1:
+            ep_table = [None] * n
+            ep_ind_table = [None] * n
+            for ib in xrange(n):
+                val_arr = numpy.empty(n+1-ib)
+                for jb in xrange(ib, n+1):
+                    previous_state = State(ib,jb, previous_label, label_set, image_array)
+                    val_arr[jb-ib] = loss_table_column(previous_state.as_int()) + Jb(jb)
+                ep_table[ib], ep_ind_table[ib] = running_min(val_arr, reverse = True)
+            Ep = lambda j, ib: (ep_table[jb][j], ep_ind_table[jb][j])
         return Ep
+                
         
     
     def _get_h(self,n, Ep, Jb):
