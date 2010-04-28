@@ -44,7 +44,7 @@ class GCLSmoothnessLossFunction(SmoothnessLossFunction.SmoothnessLossFunction):
         if (pixel1 is None) and (label1 is None):
             return 0
         w = self._w_coeff / self._hgrad[pixel1.row, pixel1.column]
-        return w * self._hloss_table[self._label_set.to_int( label1 ), self._label_set.to_int( label2) ]
+        return w * self._hloss_table[self._label_set.label_to_int( label1 ), self._label_set.label_to_int( label2) ]
     
     def vertical_loss(self, pixel1, label1, pixel2, label2):
         """

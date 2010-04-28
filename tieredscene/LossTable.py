@@ -278,7 +278,7 @@ class LossTable(object):
         '''
         Constructor
         '''
-        if not ( data_loss_func.label_set() == smoothness_loss_func.label_set() ):
+        if not ( data_loss_func.label_set == smoothness_loss_func.label_set ):
             raise ValueError('data_loss_func and smoothness_loss_func must operate over the same label set')
         label_set = data_loss_func.label_set
         hslc = HorizontalSmoothnessLossCache(image_array, smoothness_loss_func)
@@ -308,6 +308,7 @@ class LossTable(object):
                                     best_prev_state_value = curr_value
                             self._table[curr_state.as_int(), column] = best_prev_state_value + u.get_loss(curr_state, column)
                             self._trace[curr_state.as_int(), column] = best_prev_state
+                            #TODO: fix this to take u into account when calculating best previous state
         self._label_set = label_set
         self._image_array = image_array
         
