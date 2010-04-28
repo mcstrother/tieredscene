@@ -6,7 +6,7 @@ Created on Apr 27, 2010
 
 import numpy
 
-def running_min(arr):
+def running_min(arr, reverse = False):
     """
     Parameters
     ----------
@@ -17,6 +17,8 @@ def running_min(arr):
     min_arr : the running min of the input
     min_ind_arr: the running argmin of the input
     """
+    if reverse:
+        arr = arr[::-1]
     min_arr = numpy.empty(arr.shape)
     min_ind_arr = numpy.empty(arr.shape) 
     min_arr[0] = arr[0]
@@ -28,6 +30,8 @@ def running_min(arr):
         else:
             min_arr[i] =  min_arr[i-1]
             min_ind_arr[i] = min_ind_arr[i-1]
-            
+    if reverse:
+        arr = arr[::-1]
+        min_ind_arr = len(min_ind_arr)-1-min_ind_arr
     return (min_arr, min_ind_arr)
     
