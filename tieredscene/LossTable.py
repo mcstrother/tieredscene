@@ -80,20 +80,21 @@ class _FTables(object):
         ep_list[4] = ep_list[3] = lambda i, jb: (ep_table[jb][i], ep_ind_table[jb][i] )
         ep_list[0]= lambda j, jb: (reverse_ep_table[jb][j], reverse_ep_ind_table[jb][j])
         #get ep for relative_positioning = 1
-        ep_table = [None] * n
-        ep_ind_table = [None] * n
+        ep_table2 = [None] * n
+        ep_ind_table2 = [None] * n
         for ib in xrange(n):
-            val_arr = numpy.empty(n+1-ib)
-            for jb in xrange(ib, n+1):
+            val_arr = numpy.empty(n-ib)
+            for jb in xrange(ib, n):
                 previous_state = State(ib,jb, previous_label, label_set, image_array)
                 val_arr[jb-ib] = loss_table_column(previous_state.as_int()) + Jb(jb)
-            ep_table[ib], ep_ind_table[ib] = running_min(val_arr, reverse = True)
-        ep_list[1] =  lambda j, ib: (ep_table[jb][j], ep_ind_table[jb][j])
+            ep_table2[ib], ep_ind_table2[ib] = running_min(val_arr, reverse = True)
+            ep_ind_table2[ib] = ep_ind_table2[ib] + ib
+        ep_list[1] =  lambda j, ib: (ep_table2[jb][j-ib], ep_ind_table2[jb][j-ib])
         return ep_list
                 
         
     
-    def _get_hs(self, n, label_set, image_array, loss_table_column,  col, previous_label, Ib, Jb):
+    def _get_h(self, n, label_set, image_array, loss_table_column,  col, previous_label, Ib, Jb, rel_pos):
         """Calculate h as described in equation 22 of the Felzenszwalb paper
         
         Runs in O(n^2) time.
@@ -105,25 +106,80 @@ class _FTables(object):
         -------
         """
         ep_list = self._get_E_primes(n, label_set, image_array, loss_table_column, col, previous_label, Ib, Jb)
-        
+        h_list = [None]*6
         
         h_table = [None] * n
         h_ind_table = [None]*n
+        reverse_h_table = [None] * n
+        reverse_h_ind_table = [None]* n
+        ep_ind_table = [None]*n
         
-        for i in xrange(n):
-            min_ind_arr = numpy.empty(jb+1)
-            min_val_arr = numpy.empty(jb+1)
-            ep_min_ind_arr= numpy.empty(jb+1)
-            for jb in range(i, n+1):
-                curr_val = Jb(jb) + Ep(i, jb)[0]
-                if (jb == i) or curr_val < min_val_arr[jb-i-1]:
-                    min_val_arr[jb-i] = curr_val
-                    min_ind_arr[jb-i] = jb
-                    ep_min_ind_arr[jb-i]  = Ep(i,jb)[1]
-            h_table[i] = min_val_arr
-            h_ind_table = min_ind_arr
-        h = lambda i, j: (h_table[i][j-i], h_ind_table[i][j-i], ep_ind_table[i][j-i])
-        return h
+        if rel_pos == 0:
+            for j in xrange(n):
+                val_arr = numpy.empty(n-j)
+                ep_ind_arr = numpy.empty(n-j)
+                for jb in xrange(j,n):
+                    val_arr[jb-j] = Jb(jb) + ep_list[0](j,jb)[0]
+                    ep_ind_arr[jb-j] = ep_list[0](j,jb)[1]
+                reverse_h_table[j], reverse_h_ind_table[j] = running_min(val_arr, reverse = True)
+                ep_ind_table[j] = numpy.array([ep_ind_arr[ind] for ind in reverse_h_ind_table[j] ])
+                reverse_h_ind_table[j] = reverse_h_ind_table[j] + j
+            h_out = lambda i,j: (reverse_h_table[j][j], reverse_h_ind_table[j][j], ep_ind_table[j][j] )
+        elif rel_pos == 1:
+            for j in xrange(n):
+                val_arr = numpy.empty(j)
+                ep_ind_arr = numpy.empty(j)
+                for ib in xrange(j):
+                    val_arr[ib] = Ib(ib) + ep_list[1](j, ib)[0]
+                    ep_ind_arr[ib] = ep_list[1](j,ib)[1]
+                reverse_h_table[j], reverse_h_ind_table[j] = running_min(val_arr, reverse = True)
+                ep_ind_table[j] = numpy.array([ep_ind_arr[ind] for ind in reverse_h_ind_table[j] ])
+            h_out] = lambda i,j: (reverse_h_table[j][i], reverse_h_ind_table[j][i], ep_ind_table[j][i])
+        elif rel_pos == 2:
+            for i in xrange(n):
+                val_arr = numpy.empty(n-i)
+                ep_ind_arr = numpy.empty(n-i)
+                for jb in xrange(i, n):
+                    val_arr[jb-i] = Jb(jb) + ep_list[2](i,jb)[0]
+                    ep_ind_arr = ep_list[2](i,jb)[1]
+                h_table[i], h_ind_table[i] = running_min(val_arr)
+                ep_ind_table[i] = numpy.array([ep_ind_arr[ind] for ind in h_ind_table[i] ])
+                h_ind_table[i] = h_ind_table[i] + i
+            h_out = lambda i,j: (h_table[i][j-i], h_ind_table[i][j-i], ep_ind_table[i][j-i])
+        elif rel_pos == 3:
+            for i in xrange(n):
+                val_arr = numpy.empty(n-i)
+                ep_ind_arr = numpy.empty(n-i)
+                for jb in xrange(i,n):
+                    val_arr[jb-i] = Jb(jb) + ep_list[3](i,jb)[0]
+                    ep_ind_arr[jb-i] = ep_list[0](i,jb)[1]
+                reverse_h_table[i], reverse_h_ind_table[i] = running_min(val_arr, reverse = True)
+                ep_ind_table[i] = numpy.array([ep_ind_arr[ind] for ind in reverse_h_ind_table[i] ])
+                reverse_h_ind_table[j] = reverse_h_ind_table[i] + i
+            h_out = lambda i,j: (reverse_h_table[i][j], reverse_h_ind_table[i][j], ep_ind_table[i][j] ) #@IndentOk
+        elif rel_pos == 4:
+            for i in xrange(n):
+                val_arr = numpy.empty(n-i)
+                ep_ind_arr = numpy.empty(n-i)
+                for jb in xrange(i,n):
+                    val_arr[jb-i] = Jb(jb) + ep_list[4](i,jb)[0]
+                    ep_ind_arr[jb-i] = ep_list[0](i,jb)[1]
+                h_table[i], h_ind_table[i] = running_min(val_arr)
+                ep_ind_table[i] = numpy.array([ep_ind_arr[ind] for ind in h_ind_table[i] ])
+                h_ind_table[i] = h_ind_table[i] + i
+            h_out = lambda i,j: (h_table[i][j], h_ind_table[i][j], ep_ind_table[i][j] )
+        elif rel_pos == 5:
+            val_arr = numpy.empty(n)
+            ep_ind_arr = numpy.empty(n)
+            for jb in xrange(n):
+                val_arr[jb] = Jb(jb) + ep_list[5](jb)[0]
+                ep_ind_arr[jb] = ep_list[5](jb)[1]
+            h_table[0], h_ind_table[0] = running_min(val_arr)
+            ep_ind_table[0] = numpy.array([ep_ind_arr[ind] for ind in h_ind_table[0] ])
+            h_out = lambda i,j : (h_table[0][i], h_ind_table[0][i], ep_ind_table[0][i])
+        
+        return h_out
+                
         
     
     def _get_decoupled_functions(self, hslc, n, label_set, col, previous_label, this_label, positioning ):  #TODO: this is an awful method name
