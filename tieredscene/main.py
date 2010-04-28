@@ -20,7 +20,8 @@ def main(argv):
     data_loss_function = GeometricClassLabeling.GCLDataLossFunction()
     smoothness_loss_function = GeometricClassLabeling.GCLSmoothnessLossFunction(image_array)
     segmentation = Segmentation.Segmentation(image_array, data_loss_function, smoothness_loss_function)
-    
+    out = Image.fromarray(segmentation.to_array(), 'L')
+    out.save('segmentation.png')
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))
