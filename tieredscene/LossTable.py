@@ -31,15 +31,15 @@ class _FTables(object):
         self._fs = [None] *6
         for relative_positioning in xrange(6):
             I, J, Ib, Jb, C = self._get_decoupled_functions(hslc, n, label_set, col_num, previous_label, this_label, relative_positioning)
-            Ep = self._get_E_prime(n, label_set, image_array, loss_table_column, col_num, previous_label, Ib)
-            h = self._get_h(n, Ep, Jb)
+            Ep = self._get_E_prime(n, label_set, image_array, loss_table_column,  col, previous_label, Ib, Jb, rel_pos)
+            h = self._get_h(n, label_set, image_array, loss_table_column,  col, previous_label, Ib, Jb, rel_pos)
             self._fs[relative_positioning] = lambda i,j : (I(i) + J(j) + C() + h(i,j)[0], h(i,j)[2], h(i,j)[1])
         
     
     def get_best_prev_i_j(self, i, j, relative_positioning):
         return self._fs[relative_positioning](i,j)
 
-    def _get_E_primes(self, n, label_set, image_array, loss_table_column,  col, previous_label, Ib, Jb):
+    def _get_E_prime(self, n, label_set, image_array, loss_table_column,  col, previous_label, Ib, Jb, rel_pos):
         """Caclulated E' in O(n^2) time as described in equation 19 of the Felzenszwalb paper
         
         Parameters
@@ -90,7 +90,7 @@ class _FTables(object):
             ep_table2[ib], ep_ind_table2[ib] = running_min(val_arr, reverse = True)
             ep_ind_table2[ib] = ep_ind_table2[ib] + ib
         ep_list[1] =  lambda j, ib: (ep_table2[jb][j-ib], ep_ind_table2[jb][j-ib])
-        return ep_list
+        return ep_list[rel_pos]
                 
         
     
