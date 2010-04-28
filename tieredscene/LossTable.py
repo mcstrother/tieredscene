@@ -39,62 +39,77 @@ class _FTables(object):
     def get_best_prev_i_j(self, i, j, relative_positioning):
         return self._fs[relative_positioning](i,j)
 
-    def _get_E_prime(self, n, label_set, image_array, loss_table_column,  col, previous_label, Ib, Jb, rel_pos,):
+    def _get_E_primes(self, n, label_set, image_array, loss_table_column,  col, previous_label, Ib, Jb):
+        """Caclulated E' in O(n^2) time as described in equation 19 of the Felzenszwalb paper
+        
+        Parameters
+        ----------
+        `n` :
+        label_set :
+        image_array :
+        loss_table_column :
+        col :
+        previous_label :
+        Ib : 
+        Jb :
+        
+        Returns
+        -------
+        ep_list : a list of all 6 E' functions, one corresponding to each
+            possible relative positioning.  e.g. the one corresponding
+            to the relative positioning 0 is ep_list[0].  Each E' function
+            takes a different list of inputs, but each returns a value and
+            and index
+        
+        """
         ep_list = [None]*6
-        if rel_pos >= 2 or rel_pos ==0:
-            ep_table = [None] * n
-            ep_ind_table = [None] * n
-            for jb in xrange(n):
-                val_arr = numpy.empty(jb+1)
-                for ib in xrange(jb+1):
-                    previous_state = State(ib, jb, previous_label, label_set, image_array)
-                    val_arr[ib]= loss_table_column[previous_state.as_int()] + Ib(ib)
-                if rel_pos == 2 or rel_pos ==0:
-                    ep_table[jb], ep_ind_table[jb] = running_min(val_arr, reverse = True)
-                else:
-                    ep_table[jb], ep_ind_table[jb] = running_min(val_arr)
-            if rel_pos == 5:
-                Ep = lambda jb: (ep_table[jb][jb], ep_ind_table[jb][jb] )
-            elif rel_pos == 2:
-                Ep = lambda i, jb: (ep_table[jb][i], ep_ind_table[jb][i]  )
-            elif rel_pos ==4 or rel_pos ==3:
-                Ep = lambda i, jb: (ep_table[jb][i], ep_ind_table[jb][i] )
-            elif rel_pos == 0:
-                Ep = lambda j, jb: (ep_table[jb][j], ep_ind_table[jb][j])
-        elif rel_pos == 1:
-            ep_table = [None] * n
-            ep_ind_table = [None] * n
-            for ib in xrange(n):
-                val_arr = numpy.empty(n+1-ib)
-                for jb in xrange(ib, n+1):
-                    previous_state = State(ib,jb, previous_label, label_set, image_array)
-                    val_arr[jb-ib] = loss_table_column(previous_state.as_int()) + Jb(jb)
-                ep_table[ib], ep_ind_table[ib] = running_min(val_arr, reverse = True)
-            Ep = lambda j, ib: (ep_table[jb][j], ep_ind_table[jb][j])
-        return Ep
+        #get ep for all relative positioninings except case 1
+        ep_table = [None] * n
+        ep_ind_table = [None] * n
+        reverse_ep_table = [None] * n
+        reverse_ep_ind_table = [None] * n
+        for jb in xrange(n):
+            val_arr = numpy.empty(jb+1)
+            for ib in xrange(jb+1):
+                previous_state = State(ib, jb, previous_label, label_set, image_array)
+                val_arr[ib]= loss_table_column[previous_state.as_int()] + Ib(ib)
+            ep_table[jb], ep_ind_table[jb] = running_min(val_arr)
+            reverse_ep_table[jb], reverse_ep_ind_table[jb] = running_min(val_arr, reverse = True)
+        ep_list[5] = lambda jb: (ep_table[jb][jb], ep_ind_table[jb][jb] )
+        ep_list[2] =  lambda i, jb: (reverse_ep_table[jb][i], reverse_ep_ind_table[jb][i]  )
+        ep_list[4] = ep_list[3] = lambda i, jb: (ep_table[jb][i], ep_ind_table[jb][i] )
+        ep_list[0]= lambda j, jb: (reverse_ep_table[jb][j], reverse_ep_ind_table[jb][j])
+        #get ep for relative_positioning = 1
+        ep_table = [None] * n
+        ep_ind_table = [None] * n
+        for ib in xrange(n):
+            val_arr = numpy.empty(n+1-ib)
+            for jb in xrange(ib, n+1):
+                previous_state = State(ib,jb, previous_label, label_set, image_array)
+                val_arr[jb-ib] = loss_table_column(previous_state.as_int()) + Jb(jb)
+            ep_table[ib], ep_ind_table[ib] = running_min(val_arr, reverse = True)
+        ep_list[1] =  lambda j, ib: (ep_table[jb][j], ep_ind_table[jb][j])
+        return ep_list
                 
         
     
-    def _get_h(self,n, Ep, Jb):
+    def _get_hs(self, n, label_set, image_array, loss_table_column,  col, previous_label, Ib, Jb):
         """Calculate h as described in equation 22 of the Felzenszwalb paper
         
         Runs in O(n^2) time.
         
         Parameters
         ----------
-        `Ep` : the Ep function returned by self._get_E_prime
-        `Jb` : the Jb function returned by self._get_decoupled functions
         
         Returns
         -------
-        `h` : A function which takes two ints i and j and returns a 3-tuple in O(1) time.
-            The first value in the tuple is the running min of all jb in [i, j]of Jb(jb)+Ep(i,jb).
-            The second value is the value of jb that yields the min.
-            The third value is the value of ib that yields the min for the given jb (as returned by the Ep function)
         """
+        ep_list = self._get_E_primes(n, label_set, image_array, loss_table_column, col, previous_label, Ib, Jb)
+        
+        
         h_table = [None] * n
         h_ind_table = [None]*n
-        ep_ind_table = [None]*n
+        
         for i in xrange(n):
             min_ind_arr = numpy.empty(jb+1)
             min_val_arr = numpy.empty(jb+1)
