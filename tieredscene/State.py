@@ -99,4 +99,11 @@ class State(object):
         el = len(label_set.middle)
         r = image_array.shape[0]
         return el * r/2.0*(r+1)
+    
+    def to_array(self):
+        num_rows = self._image_array_shape[0] # number of rows in the image
+        out = numpy.empty(num_rows)
+        out[:self.i] = self.label_set.label_to_int(self.label_set.top)
+        out[self.i:self.j] = self.el
+        out[self.j:num_rows] = self.label_set.label_to_int(self.label_set.bottom)
         

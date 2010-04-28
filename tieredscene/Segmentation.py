@@ -14,4 +14,8 @@ class Segmentation(object):
         loss_table = LossTable(numpy.array(im), data_loss_func, smoothness_loss_func )
         self._state_list = loss_table.get_optimal_state_list()
         
-    def 
+    def to_array(self):
+        out = [state.to_array() for state in self._state_list]
+        out = numpy.array(out)
+        out = out.transpose()
+        return out
