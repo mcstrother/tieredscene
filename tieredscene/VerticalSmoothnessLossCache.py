@@ -59,38 +59,38 @@ class VerticalSmoothnessLossCache(object):
         self._loss_function = loss_function
         self._image_array = image_array
         
-        def get_loss(self, state, column):
-            """Returns the total vertical smoothness loss implied
-            by assigning a given state to a given column.
-            
-            Note that this method always terminates
-            in constant time.
-            
-            Parameters
-            ----------
-            state : a state object
-            column: a column number
-            
-            Returns
-            -------
-            loss : the vertical smoothness loss implied by 
-                assigning state to column
-            """
-            ls = state.label_set
-            loss = self._integral[state.i-1, column, ls.label_to_int(ls.top)] #top loss
-            #transition from top to middle
-            pixel1 = Pixel.Pixel(self._image_array, column, state.i-1)
-            pixel2 = Pixel.Pixel(self._image_array, column, state.i)
-            loss += self._loss_function.vertical_loss(pixel1, ls.top, pixel2, state.mlabel)
-            #middle loss
-            loss += self._integral[state.j-1, column, state.el] - self._integral[state.i, column, state.el]
-            #transition from middle to bottom
-            pixel1 = Pixel.Pixel(self._image_array, column, state.j-1)
-            pixel2 = Pixel.Pixel(self._image_array, column, state.j)
-            loss += self._loss_function.vertical_loss(pixel1, state.mlabel, pixel2, ls.bottom)
-            #bottom loss
-            loss += self._integral[-1, column, ls.label_to_int(ls.bottom) ] - self._integral[state.j, column, ls.label_to_int(ls.bottom) ]
-            return loss
+    def get_loss(self, state, column):
+        """Returns the total vertical smoothness loss implied
+        by assigning a given state to a given column.
+        
+        Note that this method always terminates
+        in constant time.
+        
+        Parameters
+        ----------
+        state : a state object
+        column: a column number
+        
+        Returns
+        -------
+        loss : the vertical smoothness loss implied by 
+            assigning state to column
+        """
+        ls = state.label_set
+        loss = self._integral[state.i-1, column, ls.label_to_int(ls.top)] #top loss
+        #transition from top to middle
+        pixel1 = Pixel.Pixel(self._image_array, column, state.i-1)
+        pixel2 = Pixel.Pixel(self._image_array, column, state.i)
+        loss += self._loss_function.vertical_loss(pixel1, ls.top, pixel2, state.mlabel)
+        #middle loss
+        loss += self._integral[state.j-1, column, state.el] - self._integral[state.i, column, state.el]
+        #transition from middle to bottom
+        pixel1 = Pixel.Pixel(self._image_array, column, state.j-1)
+        pixel2 = Pixel.Pixel(self._image_array, column, state.j)
+        loss += self._loss_function.vertical_loss(pixel1, state.mlabel, pixel2, ls.bottom)
+        #bottom loss
+        loss += self._integral[-1, column, ls.label_to_int(ls.bottom) ] - self._integral[state.j, column, ls.label_to_int(ls.bottom) ]
+        return loss
         
         
         

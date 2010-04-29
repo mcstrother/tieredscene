@@ -14,8 +14,8 @@ from tieredscene.utilities import running_min
 class _UTable(object):
     
     def __init__(self, image_array, data_loss_func, smoothness_loss_func):
-        self._vslc = VerticalSmoothnessLossCache(self._image_array, smoothness_loss_func)
-        self._dlc = DataLossCache(self._image_array, data_loss_func)
+        self._vslc = VerticalSmoothnessLossCache(image_array, smoothness_loss_func)
+        self._dlc = DataLossCache(image_array, data_loss_func)
     
     def get_loss(self, state, column):
         return self._vslc.get_loss(state, column) + self._dlc.get_loss(state, column)
@@ -32,7 +32,7 @@ class _FTables(object):
         for rel_pos in xrange(6):
             I, J, Ib, Jb, C = self._get_decoupled_functions(hslc, n, label_set, col_num, previous_label, this_label, rel_pos)
             Ep = self._get_E_prime(n, label_set, image_array, loss_table_column,  col_num, previous_label, Ib, Jb, rel_pos)
-            h = self._get_h(n, label_set, image_array, loss_table_column,  col_num, previous_label, Ib, Jb, rel_pos)
+            h = self._get_h(n, label_set, image_array, loss_table_column,  col_num, previous_label, Ep, Ib, Jb, rel_pos)
             self._fs[rel_pos] = lambda i,j : (I(i) + J(j) + C() + h(i,j)[0], h(i,j)[2], h(i,j)[1])
         
     
@@ -86,15 +86,15 @@ class _FTables(object):
             val_arr = numpy.empty(n-ib)
             for jb in xrange(ib, n):
                 previous_state = State(ib,jb, previous_label, label_set, image_array)
-                val_arr[jb-ib] = loss_table_column(previous_state.as_int()) + Jb(jb)
+                val_arr[jb-ib] = loss_table_column[previous_state.as_int()] + Jb(jb)
             ep_table2[ib], ep_ind_table2[ib] = running_min(val_arr, reverse = True)
             ep_ind_table2[ib] = ep_ind_table2[ib] + ib
-        ep_list[1] =  lambda j, ib: (ep_table2[jb][j-ib], ep_ind_table2[jb][j-ib])
+        ep_list[1] =  lambda j, ib: (ep_table2[ib][j-ib], ep_ind_table2[ib][j-ib])
         return ep_list[rel_pos]
                 
         
     
-    def _get_h(self, n, label_set, image_array, loss_table_column,  col, previous_label, Ib, Jb, rel_pos):
+    def _get_h(self, n, label_set, image_array, loss_table_column,  col, previous_label, Ep, Ib, Jb, rel_pos):
         """Calculate h as described in equation 22 of the Felzenszwalb paper
         
         Runs in O(n^2) time.
@@ -105,7 +105,6 @@ class _FTables(object):
         Returns
         -------
         """
-        ep_list = self._get_E_primes(n, label_set, image_array, loss_table_column, col, previous_label, Ib, Jb)
         h_list = [None]*6
         
         h_table = [None] * n
@@ -119,19 +118,19 @@ class _FTables(object):
                 val_arr = numpy.empty(n-j)
                 ep_ind_arr = numpy.empty(n-j)
                 for jb in xrange(j,n):
-                    val_arr[jb-j] = Jb(jb) + ep_list[0](j,jb)[0]
-                    ep_ind_arr[jb-j] = ep_list[0](j,jb)[1]
+                    val_arr[jb-j] = Jb(jb) + Ep(j,jb)[0]
+                    ep_ind_arr[jb-j] = Ep(j,jb)[1]
                 reverse_h_table[j], reverse_h_ind_table[j] = running_min(val_arr, reverse = True)
                 ep_ind_table[j] = numpy.array([ep_ind_arr[ind] for ind in reverse_h_ind_table[j] ])
                 reverse_h_ind_table[j] = reverse_h_ind_table[j] + j #represents best jb
             h_out = lambda i,j: (reverse_h_table[j][0], ep_ind_table[j][0], reverse_h_ind_table[j][0] )
         elif rel_pos == 1:
             for j in xrange(n):
-                val_arr = numpy.empty(j)
-                ep_ind_arr = numpy.empty(j)
-                for ib in xrange(j):
-                    val_arr[ib] = Ib(ib) + ep_list[1](j, ib)[0]
-                    ep_ind_arr[ib] = ep_list[1](j,ib)[1]
+                val_arr = numpy.empty(j+1)
+                ep_ind_arr = numpy.empty(j+1)
+                for ib in xrange(j+1):
+                    val_arr[ib] = Ib(ib) + Ep(j, ib)[0]
+                    ep_ind_arr[ib] = Ep(j,ib)[1]
                 reverse_h_table[j], reverse_h_ind_table[j] = running_min(val_arr, reverse = True)
                 ep_ind_table[j] = numpy.array([ep_ind_arr[ind] for ind in reverse_h_ind_table[j] ])
             h_out = lambda i,j: (reverse_h_table[j][i], reverse_h_ind_table[j][i], ep_ind_table[j][i])
@@ -140,10 +139,10 @@ class _FTables(object):
                 val_arr = numpy.empty(n-i)
                 ep_ind_arr = numpy.empty(n-i)
                 for jb in xrange(i, n):
-                    val_arr[jb-i] = Jb(jb) + ep_list[2](i,jb)[0]
-                    ep_ind_arr = ep_list[2](i,jb)[1]
+                    val_arr[jb-i] = Jb(jb) + Ep(i,jb)[0]
+                    ep_ind_arr[jb-i] = Ep(i,jb)[1]
                 h_table[i], h_ind_table[i] = running_min(val_arr)
-                ep_ind_table[i] = numpy.array([ep_ind_arr[ind] for ind in h_ind_table[i] ])
+                ep_ind_table[i] = numpy.array([ep_ind_arr[int(ind)] for ind in h_ind_table[i] ]) #TODO: problem here due to numpy 0-d array
                 h_ind_table[i] = h_ind_table[i] + i #represents best jb
             h_out = lambda i,j: (h_table[i][j-i], ep_ind_table[i][j-i], h_ind_table[i][j-i])
         elif rel_pos == 3:
@@ -151,8 +150,8 @@ class _FTables(object):
                 val_arr = numpy.empty(n-i)
                 ep_ind_arr = numpy.empty(n-i)
                 for jb in xrange(i,n):
-                    val_arr[jb-i] = Jb(jb) + ep_list[3](i,jb)[0]
-                    ep_ind_arr[jb-i] = ep_list[0](i,jb)[1]
+                    val_arr[jb-i] = Jb(jb) + Ep(i,jb)[0]
+                    ep_ind_arr[jb-i] = Ep(i,jb)[1]
                 reverse_h_table[i], reverse_h_ind_table[i] = running_min(val_arr, reverse = True)
                 ep_ind_table[i] = numpy.array([ep_ind_arr[ind] for ind in reverse_h_ind_table[i] ])
                 reverse_h_ind_table[j] = reverse_h_ind_table[i] + i # best jb
@@ -162,8 +161,8 @@ class _FTables(object):
                 val_arr = numpy.empty(n-i)
                 ep_ind_arr = numpy.empty(n-i)
                 for jb in xrange(i,n):
-                    val_arr[jb-i] = Jb(jb) + ep_list[4](i,jb)[0]
-                    ep_ind_arr[jb-i] = ep_list[0](i,jb)[1]
+                    val_arr[jb-i] = Jb(jb) + Ep(i,jb)[0]
+                    ep_ind_arr[jb-i] = Ep(i,jb)[1]
                 h_table[i], h_ind_table[i] = running_min(val_arr)
                 ep_ind_table[i] = numpy.array([ep_ind_arr[ind] for ind in h_ind_table[i] ])
                 h_ind_table[i] = h_ind_table[i] + i
@@ -172,8 +171,8 @@ class _FTables(object):
             val_arr = numpy.empty(n)
             ep_ind_arr = numpy.empty(n)
             for jb in xrange(n):
-                val_arr[jb] = Jb(jb) + ep_list[5](jb)[0]
-                ep_ind_arr[jb] = ep_list[5](jb)[1]
+                val_arr[jb] = Jb(jb) + Ep(jb)[0]
+                ep_ind_arr[jb] = Ep(jb)[1]
             h_table[0], h_ind_table[0] = running_min(val_arr)
             ep_ind_table[0] = numpy.array([ep_ind_arr[ind] for ind in h_ind_table[0] ]) 
             h_out = lambda i,j : (h_table[0][i], ep_ind_table[0][i], h_ind_table[0][i])
