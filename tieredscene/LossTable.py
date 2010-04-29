@@ -154,7 +154,7 @@ class _FTables(object):
                     ep_ind_arr[jb-i] = Ep(i,jb)[1]
                 reverse_h_table[i], reverse_h_ind_table[i] = running_min(val_arr, reverse = True)
                 ep_ind_table[i] = numpy.array([ep_ind_arr[ind] for ind in reverse_h_ind_table[i] ])
-                reverse_h_ind_table[j] = reverse_h_ind_table[i] + i # best jb
+                reverse_h_ind_table[i] = reverse_h_ind_table[i] + i # best jb
             h_out = lambda i,j: (reverse_h_table[i][j], ep_ind_table[i][j], reverse_h_ind_table[i][j] )
         elif rel_pos == 4:
             for i in xrange(n):
@@ -223,7 +223,7 @@ class _FTables(object):
         b = label_set.label_to_int(label_set.bottom)
         
         
-        C = lambda x: table[n, col, ln1, ln2] 
+        C = lambda : table[n, col, ln1, ln2] 
         if positioning == 0:
             I = lambda i: table[i, col, t, t] - table[i,col, t, ln2]
             J = lambda j: table[j, col, t, ln2] - table[j, col, t, b]
@@ -298,7 +298,7 @@ class LossTable(object):
                             best_prev_state= None
                             best_prev_state_value = None
                             for rel_pos in xrange(6):
-                                f_out = ftables.get_best_i_j(i, j, rel_pos)
+                                f_out = ftables.get_best_prev_i_j(i, j, rel_pos)
                                 curr_value = f_out[0]
                                 if best_prev_state is None or curr_value < best_prev_state_value:
                                     ib = f_out[1]
