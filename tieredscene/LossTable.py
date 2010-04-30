@@ -223,7 +223,7 @@ class _FTables(object):
         b = label_set.label_to_int(label_set.bottom)
         
         
-        C = lambda : table[n, col, ln1, ln2] 
+        C = lambda : table[n-1, col, ln1, ln2] 
         if positioning == 0:
             I = lambda i: table[i, col, t, t] - table[i,col, t, ln2]
             J = lambda j: table[j, col, t, ln2] - table[j, col, t, b]
@@ -289,8 +289,8 @@ class LossTable(object):
         n = image_array.shape[0]
         
         for column in xrange(1, self._table.shape[1]):
-            for this_label in label_set.all_labels:
-                for previous_label in label_set.all_labels:
+            for this_label in label_set.middle:
+                for previous_label in label_set.middle:
                     ftables = _FTables(hslc, label_set, image_array, self._table[:,column-1], column, previous_label, this_label)
                     for i in xrange(n):
                         for j in xrange(i-1, n):
@@ -306,8 +306,7 @@ class LossTable(object):
                                     best_prev_state = State(ib, jb, previous_label, label_set, image_array)
                                     best_prev_state_value = curr_value
                             self._table[curr_state.as_int(), column] = best_prev_state_value + u.get_loss(curr_state, column)
-                            self._trace[curr_state.as_int(), column] = best_prev_state
-                            #TODO: fix this to take u into account when calculating best previous state
+                            self._trace[curr_state.as_int(), column] = best_prev_state.as_int()
         self._label_set = label_set
         self._image_array = image_array
         
