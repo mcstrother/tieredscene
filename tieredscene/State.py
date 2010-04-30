@@ -107,4 +107,6 @@ class State(object):
         out[self.i:self.j] = self.el
         out[self.j:num_rows] = self.label_set.label_to_int(self.label_set.bottom)
         return out
-        
+    
+    def __str__(self):
+        return '(' + str(self.i) +',' + str(self.j) + ','+str(self.mlabel) + ')'
