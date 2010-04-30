@@ -106,4 +106,5 @@ class State(object):
         out[:self.i] = self.label_set.label_to_int(self.label_set.top)
         out[self.i:self.j] = self.el
         out[self.j:num_rows] = self.label_set.label_to_int(self.label_set.bottom)
+        return out
         
