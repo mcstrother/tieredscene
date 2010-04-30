@@ -9,13 +9,18 @@ from tieredscene.DataLossCache import DataLossCache
 from tieredscene.HorizontalSmoothnessLossCache import HorizontalSmoothnessLossCache
 from tieredscene.VerticalSmoothnessLossCache import VerticalSmoothnessLossCache
 from tieredscene.utilities import running_min
+import logging
 
+log = logging.getLogger('tieredscene.LossTable')
+flog = logging.getLogger('tieredscene.LossTable._FTables')
 
 class _UTable(object):
     
     def __init__(self, image_array, data_loss_func, smoothness_loss_func):
+        log.info('Precalculating Vertical Smoothness Loss and Data Loss')
         self._vslc = VerticalSmoothnessLossCache(image_array, smoothness_loss_func)
         self._dlc = DataLossCache(image_array, data_loss_func)
+        log.info('done precalculating vertical smoothness loss and data loss')
     
     def get_loss(self, state, column):
         return self._vslc.get_loss(state, column) + self._dlc.get_loss(state, column)
@@ -280,7 +285,9 @@ class LossTable(object):
         if not ( data_loss_func.label_set == smoothness_loss_func.label_set ):
             raise ValueError('data_loss_func and smoothness_loss_func must operate over the same label set')
         label_set = data_loss_func.label_set
+        log.info('Precalculating horizontal smoothness loss')
         hslc = HorizontalSmoothnessLossCache(image_array, smoothness_loss_func)
+        log.info('horizontal smoothness loss precalculated')
         u = _UTable(image_array, data_loss_func, smoothness_loss_func)
         #initialize the table and fill in the first column
         self._table = numpy.zeros((State.count_states(image_array, label_set), image_array.shape[1]  ) )
@@ -289,6 +296,7 @@ class LossTable(object):
         n = image_array.shape[0]
         
         for column in xrange(1, self._table.shape[1]):
+            log.info('Processing column ' + str(column))
             for this_label in label_set.middle:
                 for previous_label in label_set.middle:
                     ftables = _FTables(hslc, label_set, image_array, self._table[:,column-1], column, previous_label, this_label)
