@@ -101,12 +101,40 @@ class State(object):
         return el * r/2.0*(r+1)
     
     def to_array(self):
+        """Get a 1d numpy array filled with numbers corresponding to the state.
+        
+        For example, if the state has an image_array of shape[0] = 10,
+        and i and j are 3 and  7 respectively, and el is 2, and the numbers
+        corresponding to the top and bottom labels are 3 and 4 respectively,
+        the output would be the array
+        [3 3 3 2 2 2 2 4 4 4]
+        """
         num_rows = self._image_array_shape[0] # number of rows in the image
         out = numpy.empty(num_rows)
         out[:self.i] = self.label_set.label_to_int(self.label_set.top)
         out[self.i:self.j] = self.el
         out[self.j:num_rows] = self.label_set.label_to_int(self.label_set.bottom)
         return out
+    
+    def get_row_label(self, row):
+        """Given a row number, return the label of the pixel in that row
+        
+        Parameters
+        ----------
+        row : the row number of the pixel of interest
+        
+        Returns
+        -------
+        label : the label of the pixel in that row
+        """
+        if 0 <= row < self.i:
+            return self._label_set.top
+        elif row < self.j:
+            return self.mlabel
+        elif row < self._image_array_shape[0]:
+            return self._label_set.bottom
+        else:
+            raise IndexError('Invalid row number, '  + str(row))
     
     def __str__(self):
         return '(' + str(self.i) +',' + str(self.j) + ','+str(self.mlabel) + ')'
