@@ -28,7 +28,7 @@ class TestSmoothnessLossCaches(unittest.TestCase):
             for state_num in xrange(State.count_states(self.image_array, self.label_set)):
                 state = State.from_int(state_num, self.label_set, self.image_array)
                 brute_loss = self.function.vertical_loss(None, None, Pixel(self.image_array,column , 0), state.get_row_label(0))
-                for row in xrange(1, state.i):
+                for row in xrange(1, self.image_array.shape[0]):
                     p1 = Pixel(self.image_array, column, row-1)
                     l1 = state.get_row_label(row-1)
                     p2 = Pixel(self.image_array, column, row)
