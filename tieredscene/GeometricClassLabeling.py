@@ -24,20 +24,25 @@ class GCLDataLossFunction(DataLossFunction.DataLossFunction):
 
 class GCLSmoothnessLossFunction(SmoothnessLossFunction.SmoothnessLossFunction):
     _label_set = gcl_label_set
-    
-    #TODO: calculate the w term
-    def __init__(self, image_array):
-        if len(image_array.shape) != 2:
-            raise ValueError('image_array must have dimension 2.  Check that a black and white image is being used.')
-        SmoothnessLossFunction.SmoothnessLossFunction.__init__(self)
-        self._hloss_table = numpy.array([[0, 1, 4, 1, 3 ],
+    _hloss_table = numpy.array([[0, 1, 4, 1, 3 ],
                                          [1, 0, 1, 1, 1 ],
                                          [4, 1, 0, 1, 1 ],
                                          [1, 1, 1, 0, 2 ],
                                          [1, 1, 3, 2, 0 ]
                                          ])
+    _w_coeff = .1 #TODO: may need to be tweaked
+    min_gradient = .1
+    
+    #TODO: calculate the w term
+    def __init__(self, image_array):
+        SmoothnessLossFunction.SmoothnessLossFunction.__init__(self)
+        if len(image_array.shape) != 2:
+            raise ValueError('image_array must have dimension 2.  Check that a black and white image is being used.')
         self._vgrad, self._hgrad = numpy.gradient(image_array)
-        self._w_coeff = .1 #TODO: may need to be tweaked
+        #in places where gradient is 0, just make it really small
+        self._vgrad[self._vgrad==0] = self.min_gradient
+        self._hgrad[self._hgrad==0] = self.min_gradient
+        
         
     
     def horizontal_loss(self, pixel1, label1, pixel2, label2):
@@ -56,7 +61,8 @@ class GCLSmoothnessLossFunction(SmoothnessLossFunction.SmoothnessLossFunction):
         if (pixel1 is None) and (label1 is None):
             return 0
         w = self._w_coeff / self._vgrad[pixel1.row, pixel1.column]
-        return w * int(label1 == label2)
+        out = w * int(label1 == label2)
+        return out
         
         
         

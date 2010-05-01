@@ -13,12 +13,17 @@ class SmoothnessLossFunction(object):
             raise NotImplementedError("Subclasses of SmoothnessLossFunction must define a '_label_set' class variable.")
     
     def __call__(self, pixel1, label1, pixel2, label2):
-        """
+        """Gets the smoothness loss implied by assigning labels to pixels.
+        
+        pixel1 must be directly above or to the left of pixel2
+        If you know the spatial relationship between pixel1 and
+        pixel2, you should just use vertical_loss or horizontal_loss
+        accordingly, as this is slightly less efficient
         """
         if (pixel1.column == pixel2.column-1) and pixel1.row == pixel2.row:
-            self.horizontal_loss(pixel1, label1, pixel2, label2)
+            return self.horizontal_loss(pixel1, label1, pixel2, label2)
         elif (pixel1.row == pixel2.row-1) and pixel1.column == pixel2.column:
-            self.vertical_loss(pixel1, label1, pixel2, label2)
+            return self.vertical_loss(pixel1, label1, pixel2, label2)
         else:
             raise ValueError('pixel1 must be either directly to the left or directly above pixel2')
             
