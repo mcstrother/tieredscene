@@ -35,7 +35,6 @@ class _FTables(object):
         label_set = label_set
         self._fs = [None] *6
         for rel_pos in xrange(6):
-            flog.debug('Considering relative positioning ' + str(rel_pos) + '...')
             I, J, Ib, Jb, C = self._get_decoupled_functions(hslc, n, label_set, col_num, previous_label, this_label, rel_pos)
             Ep = self._get_E_prime(n, label_set, image_array, loss_table_column,  col_num, previous_label, Ib, Jb, rel_pos)
             h = self._get_h(n, label_set, image_array, loss_table_column,  col_num, previous_label, Ep, Ib, Jb, rel_pos)
@@ -301,9 +300,7 @@ class LossTable(object):
             log.info('Processing column ' + str(column))
             for this_label in label_set.middle:
                 for previous_label in label_set.middle:
-                    log.debug('Calculating _FTables for column ' + str(column) + ', with current label ' + str(this_label) + ' and assuming previous label ' + str(previous_label)+'...')
                     ftables = _FTables(hslc, label_set, image_array, self._table[:,column-1], column, previous_label, this_label)
-                    log.debug('Using _FTables to fill in DP table column...')
                     for i in xrange(n):
                         for j in xrange(i-1, n):
                             curr_state = State(i, j, this_label, label_set, image_array)
@@ -319,6 +316,8 @@ class LossTable(object):
                                     best_prev_state_value = curr_value
                             self._table[curr_state.as_int(), column] = best_prev_state_value + u.get_loss(curr_state, column)
                             self._trace[curr_state.as_int(), column] = best_prev_state.as_int()
+        log.debug('Final DP loss table is '  + repr(self._table))
+        log.debug('Final DP trace table is '  + repr(self._trace))
         self._label_set = label_set
         self._image_array = image_array
         

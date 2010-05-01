@@ -6,6 +6,11 @@ Created on Apr 16, 2010
 
 import numpy
 import Pixel
+import logging
+import math
+
+log = logging.getLogger('tieredscene.VerticalSmoothnessLossCache')
+
 
 class VerticalSmoothnessLossCache(object):
     '''
@@ -90,6 +95,8 @@ class VerticalSmoothnessLossCache(object):
         loss += self._loss_function.vertical_loss(pixel1, state.mlabel, pixel2, ls.bottom)
         #bottom loss
         loss += self._integral[-1, column, ls.label_to_int(ls.bottom) ] - self._integral[state.j, column, ls.label_to_int(ls.bottom) ]
+        if math.isnan(loss) or math.isinf(loss):
+            log.error('get_loss has returned an invalid loss, ' + str(loss))
         return loss
         
         
