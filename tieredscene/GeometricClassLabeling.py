@@ -27,6 +27,8 @@ class GCLSmoothnessLossFunction(SmoothnessLossFunction.SmoothnessLossFunction):
     
     #TODO: calculate the w term
     def __init__(self, image_array):
+        if len(image_array.shape) != 2:
+            raise ValueError('image_array must have dimension 2.  Check that a black and white image is being used.')
         SmoothnessLossFunction.SmoothnessLossFunction.__init__(self)
         self._hloss_table = numpy.array([[0, 1, 4, 1, 3 ],
                                          [1, 0, 1, 1, 1 ],
