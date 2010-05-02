@@ -39,9 +39,7 @@ class _FTables(object):
             Ep = self._get_E_prime(n, label_set, image_array, loss_table_column,  col_num, previous_label, Ib, Jb, rel_pos)
             h = self._get_h(n, label_set, image_array, loss_table_column,  col_num, previous_label, Ep, Ib, Jb, rel_pos)
             self._fs[rel_pos] = lambda i,j : (I(i) + J(j) + C() + h(i,j)[0], h(i,j)[2], h(i,j)[1])
-
         
-    
     def get_best_prev_i_j(self, i, j, relative_positioning):
         return self._fs[relative_positioning](i,j)
 

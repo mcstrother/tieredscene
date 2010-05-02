@@ -20,7 +20,7 @@ class TestVerticalSmoothnessLossCache(unittest.TestCase):
         self.label_set = self.function.label_set 
         
 
-    def testVerticalGetLoss(self):
+    def testGetLoss(self):
         """Test that VerticalSmoothnessLossCache returns same loss as brute force calculation
         """
         vert_cache = VerticalSmoothnessLossCache(self.image_array, self.function)

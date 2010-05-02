@@ -11,6 +11,7 @@ from tieredscene.State import State
 from tieredscene.Pixel import Pixel
 import Image
 
+
 class TestHorizontalSmoothnessLossCache(unittest.TestCase):
     
     def setUp(self):
@@ -19,10 +20,9 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
         self.label_set = self.function.label_set 
 
     def testFirstColumnLoss(self):
-        """Test first column of HorizontalSmoothnessLossCache
+        """Test first column of HorizontalSmoothnessLossCache without get_loss
         """
         hor_cache = HorizontalSmoothnessLossCache(self.image_array, self.function)
-        
         
         #check first column
         for state_num in xrange(State.count_states(self.image_array, self.label_set)):
@@ -40,8 +40,21 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
             if self.image_array.shape[0]>state.j:
                 cache_loss += hor_cache.table[self.image_array.shape[0]-1, 0,0, state.tee] - hor_cache.table[state.j-1, 0,0, state.el]
             self.assertAlmostEqual(cache_loss, brute_loss)
+    
+    def testGetLoss(self):
+        """
+        Spot check get_loss
+        """
+        s1 = State(0,0,self.label_set.middle[0], self.label_set, self.image_array )
+        hor_cache = HorizontalSmoothnessLossCache(self.image_array, self.function)
+        brute_loss = 0
+        for row in xrange(self.image_array.shape[0]):
+            p1 = Pixel(self.image_array, 10, row)
+            p2 = Pixel(self.image_array, 9, row)
+            brute_loss += self.function.horizontal_loss(p1,self.label_set.bottom, p2, self.label_set.bottom)
+        cache_loss = hor_cache.get_loss(s1, s1, 10)
+        self.assertAlmostEqual(brute_loss, cache_loss)
         
-
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestHorizontalSmoothnessLossCache)
 

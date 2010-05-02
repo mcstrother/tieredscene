@@ -185,16 +185,18 @@ class State(object):
         
         #This could probably be slightly more efficient, but
         #not much more
-        if i < j < ib < jb:
+        if i <= j <= ib <= jb:
             return 0
-        elif i < ib < j < jb:
+        elif i <= ib <= j <= jb:
             return 1
-        elif i < ib < jb< j:
+        elif i <= ib <= jb<= j:
             return 2
-        elif ib < i < j < jb:
+        elif ib <= i <= j <= jb:
             return 3
-        elif ib < i < jb <j:
+        elif ib <= i <= jb <=j:
             return 4
-        elif ib < jb < i < j:
+        elif ib <= jb <= i <= j:
             return 5
+        else:
+            raise ValueError('Positioning of states does not match any valid relative positioning')
         
