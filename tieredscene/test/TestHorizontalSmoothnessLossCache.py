@@ -34,6 +34,7 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
         self.s1 = State(0,0,self.label_set.middle[0], self.label_set, self.image_array )
         self.s2 = State(3, 7, self.label_set.middle[1], self.label_set, self.image_array)
         self.s3 = State(2, 5, self.label_set.middle[0], self.label_set, self.image_array)
+        self.s4 = State(0, 1, self.label_set.middle[0], self.label_set, self.image_array)
         self.hor_cache = hor_cache = HorizontalSmoothnessLossCache(self.image_array, self.function)
         
         
@@ -60,22 +61,47 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
             self.assertAlmostEqual(cache_loss, brute_loss)
     
     def testGetLoss1(self):
-        """
-        Spot check get_loss
+        """Test HorizontalSmoothnessLossCache with ib = jb= i = j = 0
         """
         brute_loss = _get_brute_loss(self.function, self.image_array, 10, self.s1, self.s1)
         cache_loss = self.hor_cache.get_loss(self.s1, self.s1, 10)
         self.assertAlmostEqual(brute_loss, cache_loss)
     
     def testGetLoss2(self):
+        """Test HorizontalSmoothnessLossCache with ib = jb = 0 <  i < j
+        """
         brute_loss = _get_brute_loss(self.function, self.image_array, 10, self.s1, self.s2)
         cache_loss = self.hor_cache.get_loss(self.s1, self.s2, 10)
         self.assertAlmostEqual(cache_loss, brute_loss)
     
     def testGetLoss3(self):
+        """Test HorizontalSmoothnessLossCache with relative_positioning 1
+        """
         brute_loss = _get_brute_loss(self.function, self.image_array, 10, self.s2, self.s3)
         cache_loss = self.hor_cache.get_loss(self.s2, self.s3, 10)
         self.assertAlmostEqual(cache_loss, brute_loss)
+    
+    def testGetLoss4(self):
+        """Test HorizontalSmoothnessLossCache with relative_positioning 4
+        """
+        brute_loss = _get_brute_loss(self.function, self.image_array, 10, self.s3, self.s2)
+        cache_loss = self.hor_cache.get_loss(self.s3, self.s2, 10)
+        self.assertAlmostEqual(cache_loss, brute_loss)
+    
+    def testGetLoss5(self):
+        """Test HorizontalSmoothnessLossCache with relative_positioning 5
+        """
+        brute_loss = _get_brute_loss(self.function, self.image_array, 10, self.s4, self.s2)
+        cache_loss = self.hor_cache.get_loss(self.s4, self.s2, 10)
+        self.assertAlmostEqual(cache_loss, brute_loss)
+    
+    def testGetLoss6(self):
+        """Test HorizontalSmoothnessLossCache with relative_positioning 0
+        """
+        brute_loss = _get_brute_loss(self.function, self.image_array, 10, self.s2, self.s4)
+        cache_loss = self.hor_cache.get_loss(self.s2, self.s4, 10)
+        self.assertAlmostEqual(cache_loss, brute_loss)
+    
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestHorizontalSmoothnessLossCache)
 
