@@ -12,17 +12,34 @@ from tieredscene.Pixel import Pixel
 import Image
 
 
+def _get_brute_loss(function, image_array, col, s1, s2):
+    """Calculate the horizontal smoothness loss
+    by brute force.
+    """
+    label_set = function.label_set
+    brute_loss = 0
+    for row in xrange(image_array.shape[0]):
+        p1 = Pixel(image_array, 10, row)
+        p2 = Pixel(image_array, 9, row)
+        brute_loss += function.horizontal_loss(p1,label_set.bottom, p2, label_set.bottom)
+    return brute_loss
+
 class TestHorizontalSmoothnessLossCache(unittest.TestCase):
     
     def setUp(self):
         self.image_array = np.array(Image.open('testimage_tiny.png').convert('L'))
         self.function = GCLSmoothnessLossFunction(self.image_array)
-        self.label_set = self.function.label_set 
-
+        self.label_set = self.function.label_set
+        self.s1 = State(0,0,self.label_set.middle[0], self.label_set, self.image_array )
+        self.s2 = State(3, 7, self.label_set.middle[1], self.label_set, self.image_array)
+        self.s3 = State(2, 5, self.label_set.middle[0], self.label_set, self.image_array)
+        self.hor_cache = hor_cache = HorizontalSmoothnessLossCache(self.image_array, self.function)
+        
+        
     def testFirstColumnLoss(self):
         """Test first column of HorizontalSmoothnessLossCache without get_loss
         """
-        hor_cache = HorizontalSmoothnessLossCache(self.image_array, self.function)
+        
         
         #check first column
         for state_num in xrange(State.count_states(self.image_array, self.label_set)):
@@ -34,27 +51,30 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
                 brute_loss += self.function.horizontal_loss(None, None, p2, l2)
             cache_loss = 0
             if state.i>0:
-                cache_loss += hor_cache.table[state.i-1, 0, 0, state.tee]
+                cache_loss += self.hor_cache.table[state.i-1, 0, 0, state.tee]
             if state.j>state.i:
-                cache_loss += hor_cache.table[state.j-1, 0,0, state.el] - hor_cache.table[state.i-1, 0, 0, state.tee]
+                cache_loss += self.hor_cache.table[state.j-1, 0,0, state.el] - self.hor_cache.table[state.i-1, 0, 0, state.tee]
             if self.image_array.shape[0]>state.j:
-                cache_loss += hor_cache.table[self.image_array.shape[0]-1, 0,0, state.tee] - hor_cache.table[state.j-1, 0,0, state.el]
+                cache_loss += self.hor_cache.table[self.image_array.shape[0]-1, 0,0, state.tee] - self.hor_cache.table[state.j-1, 0,0, state.el]
             self.assertAlmostEqual(cache_loss, brute_loss)
     
-    def testGetLoss(self):
+    def testGetLoss1(self):
         """
         Spot check get_loss
         """
-        s1 = State(0,0,self.label_set.middle[0], self.label_set, self.image_array )
-        hor_cache = HorizontalSmoothnessLossCache(self.image_array, self.function)
-        brute_loss = 0
-        for row in xrange(self.image_array.shape[0]):
-            p1 = Pixel(self.image_array, 10, row)
-            p2 = Pixel(self.image_array, 9, row)
-            brute_loss += self.function.horizontal_loss(p1,self.label_set.bottom, p2, self.label_set.bottom)
-        cache_loss = hor_cache.get_loss(s1, s1, 10)
+        brute_loss = _get_brute_loss(self.function, self.image_array, 10, self.s1, self.s1)
+        cache_loss = self.hor_cache.get_loss(self.s1, self.s1, 10)
         self.assertAlmostEqual(brute_loss, cache_loss)
-        
+    
+    def testGetLoss2(self):
+        brute_loss = _get_brute_loss(self.function, self.image_array, 10, self.s1, self.s2)
+        cache_loss = self.hor_cache.get_loss(self.s1, self.s2, 10)
+        self.assertAlmostEqual(cache_loss, brute_loss)
+    
+    def testGetLoss3(self):
+        brute_loss = _get_brute_loss(self.function, self.image_array, 10, self.s2, self.s3)
+        cache_loss = self.hor_cache.get_loss(self.s2, self.s3, 10)
+        self.assertAlmostEqual(cache_loss, brute_loss)
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestHorizontalSmoothnessLossCache)
 
