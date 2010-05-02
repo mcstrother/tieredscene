@@ -9,6 +9,7 @@ from tieredscene.GeometricClassLabeling import GCLSmoothnessLossFunction
 from tieredscene.HorizontalSmoothnessLossCache import HorizontalSmoothnessLossCache
 from tieredscene.State import State
 from tieredscene.Pixel import Pixel
+import Image
 
 class TestHorizontalSmoothnessLossCache(unittest.TestCase):
     
@@ -18,6 +19,8 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
         self.label_set = self.function.label_set 
 
     def testFirstColumnLoss(self):
+        """Test first column of HorizontalSmoothnessLossCache
+        """
         hor_cache = HorizontalSmoothnessLossCache(self.image_array, self.function)
         
         
@@ -33,15 +36,14 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
             if state.i>0:
                 cache_loss += hor_cache.table[state.i-1, 0, 0, state.tee]
             if state.j>state.i:
-                cache_loss += hor_cache.table[state.j-1, 0,0, state.el] - hor_cache.table[state.i, 0, 0, state.tee]
+                cache_loss += hor_cache.table[state.j-1, 0,0, state.el] - hor_cache.table[state.i-1, 0, 0, state.tee]
             if self.image_array.shape[0]>state.j:
-                cache_loss += hor_cache[self.image_array.shape[0]-1, 0,0, state.tee] - hor_cache.table[state.j, 0,0, state.el]
-            
+                cache_loss += hor_cache.table[self.image_array.shape[0]-1, 0,0, state.tee] - hor_cache.table[state.j-1, 0,0, state.el]
+            self.assertAlmostEqual(cache_loss, brute_loss)
         
-        for column in xrange(self.image_array.shape[1]):
-            for state_num in xrange(State.count_states(self.image_array, self.label_set)):
-                state = State.from_int(state_num, self.label_set, self.image_array)
 
+
+suite = unittest.TestLoader().loadTestsFromTestCase(TestHorizontalSmoothnessLossCache)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
