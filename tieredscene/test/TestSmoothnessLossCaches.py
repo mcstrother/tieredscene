@@ -20,9 +20,7 @@ class TestSmoothnessLossCaches(unittest.TestCase):
         
 
     def testVerticalGetLoss(self):
-        """Test that VerticalSmoothnessLossCache returns the same loss
-        for every state as we would get by calculating it by brute force
-        using the DataLossFunction
+        """Test that VerticalSmoothnessLossCache returns same loss as brute force calculation
         """
         vert_cache = VerticalSmoothnessLossCache(self.image_array, self.function)
         

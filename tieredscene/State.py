@@ -100,7 +100,10 @@ class State(object):
         """
         el = len(label_set.middle)
         r = image_array.shape[0]
-        return el * r/2.0*(r+1)
+        out = el * r/2.0*(r+1)
+        if int(out) != out:
+            raise Error('An internal error has occured.')
+        return int(out)
     
     def to_array(self):
         """Get a 1d numpy array filled with numbers corresponding to the state.
