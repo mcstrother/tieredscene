@@ -49,6 +49,12 @@ class State(object):
     def el(self):
         return self._label_set.label_to_int(self.mlabel)
     @property
+    def tee(self):
+        return self._label_set.label_to_int(self._label_set.top)
+    @property
+    def bee(self):
+        return self._label_set.label_to_int(self._label_set.bottom)
+    @property
     def label_set(self):
         return self._label_set
     

@@ -88,7 +88,7 @@ class VerticalSmoothnessLossCache(object):
         ls = state.label_set
         loss = 0
         if state.i >0: #if state.i==0 then no pixels are labeled as "top"
-            loss += self._integral[state.i-1, column, ls.label_to_int(ls.top)] #top loss
+            loss += self._integral[state.i-1, column, state.tee] #top loss
             if state.j > state.i:
                 #transition from top to middle
                 pixel1 = Pixel.Pixel(self._image_array, column, state.i-1)

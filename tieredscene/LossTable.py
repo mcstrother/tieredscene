@@ -205,8 +205,8 @@ class _FTables(object):
         ----------
         hslc :  a `HorizontalSmoothnessLossCache` object
         col : the column of the loss table that we are currently calculating
-        previous_label : any label in self._label_set
-        this_label : any label in self._label_set
+        previous_label : any label in self._label_set other than the top or bottom
+        this_label : any label in self._label_set other than the top or bottom
         positioning : an integer representing the relative positing of i,j, i_bar, and j_bar 
         
         Returns

@@ -66,6 +66,22 @@ class HorizontalSmoothnessLossCache(object):
         """
         table[row, column, labelnumber1, labelnumber2] = the horizontal smoothness loss incurred by labeling rows 0
             through `row` in column-1 labelnumber1 and labeling rows 0 through `row` in `column` labelnumber2
+            
+        when column = 0, the value is the same for all values of labelnumber1
         """
         return self._integral
         
+    def get_loss(self, state1, state2, column2):
+        """Get the loss implied by assigning state2 to column2 and state1 to column2-1
+        
+        Parameters
+        ----------
+        state1 : a State object
+        state2 : a State object
+        column2 : an int
+        
+        Returns
+        -------
+        loss : a number
+        """
+        pass #TODO: maybe implement this later, but a little too complex for now.

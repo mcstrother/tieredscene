@@ -8,10 +8,11 @@ import Image
 import numpy as np
 from tieredscene.GeometricClassLabeling import GCLSmoothnessLossFunction
 from tieredscene.VerticalSmoothnessLossCache import VerticalSmoothnessLossCache
+from tieredscene.HorizontalSmoothnessLossCache import HorizontalSmoothnessLossCache
 from tieredscene.State import State
 from tieredscene.Pixel import Pixel
 
-class TestSmoothnessLossCaches(unittest.TestCase):
+class TestVerticalSmoothnessLossCache(unittest.TestCase):
 
     def setUp(self):
         self.image_array = np.array(Image.open('testimage_tiny.png').convert('L'))
@@ -37,7 +38,12 @@ class TestSmoothnessLossCaches(unittest.TestCase):
                 cache_loss = vert_cache.get_loss(state, column)
                 self.assertAlmostEquals(brute_loss, cache_loss)
             
-suite = unittest.TestLoader().loadTestsFromTestCase(TestSmoothnessLossCaches)
+            
+    
+                
+        
+        
+suite = unittest.TestLoader().loadTestsFromTestCase(TestVerticalSmoothnessLossCache)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
