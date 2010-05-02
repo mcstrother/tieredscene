@@ -6,6 +6,7 @@ Created on Apr 17, 2010
 
 import numpy
 from tieredscene import Pixel
+from tieredscene.State import State
 
 class HorizontalSmoothnessLossCache(object):
     '''
@@ -166,4 +167,11 @@ class HorizontalSmoothnessLossCache(object):
         -------
         loss : a number
         """
-        pass #TODO: maybe implement this later, but a little too complex for now.
+        ib = state1.i
+        jb = state1.j
+        i = state2.i
+        j = state2.j
+        rel_pos = State.get_relative_positioning(state1, state2)
+        I,J, Ib, Jb,C = self.get_decoupled_functions(column2, state1.mlabel, state2.mlabel, rel_pos)
+        return I(i) + J(j) + Ib(ib) + Jb(jb)  + C()
+        

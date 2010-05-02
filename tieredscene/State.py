@@ -149,3 +149,52 @@ class State(object):
     
     def __str__(self):
         return '(' + str(self.i) +',' + str(self.j) + ','+str(self.mlabel) + ')'
+    
+    
+    @classmethod
+    def get_relative_positioning(cls, state1, state2):
+        """Get the number of the relative positioning of two states
+        
+        
+        
+        ib and jb refer to state 1
+        i and j refer to state 2
+        The number returned is dependent on the ordering of
+        these 4 numbers.  The mapping is as follows
+        
+        0. i, j, ib, jb
+        1. i, ib, j, jb
+        2. i, ib, jb, j
+        3. ib, i, j, jb
+        4. ib, i, jb, j
+        5. ib, jb, i, j
+        
+        Parameters
+        ----------
+        state1 :
+        state2 :
+        
+        Returns
+        -------
+        rel_pos : a number between 0 and 5 inclusive
+        """
+        ib = state1.i
+        jb = state1.j
+        i = state2.i
+        j = state2.j
+        
+        #This could probably be slightly more efficient, but
+        #not much more
+        if i < j < ib < jb:
+            return 0
+        elif i < ib < j < jb:
+            return 1
+        elif i < ib < jb< j:
+            return 2
+        elif ib < i < j < jb:
+            return 3
+        elif ib < i < jb <j:
+            return 4
+        elif ib < jb < i < j:
+            return 5
+        
