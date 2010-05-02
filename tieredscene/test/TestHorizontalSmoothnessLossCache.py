@@ -16,12 +16,13 @@ def _get_brute_loss(function, image_array, col, s1, s2):
     """Calculate the horizontal smoothness loss
     by brute force.
     """
-    label_set = function.label_set
     brute_loss = 0
     for row in xrange(image_array.shape[0]):
         p1 = Pixel(image_array, 10, row)
         p2 = Pixel(image_array, 9, row)
-        brute_loss += function.horizontal_loss(p1,label_set.bottom, p2, label_set.bottom)
+        l1 = s1.get_row_label(row)
+        l2 = s2.get_row_label(row)
+        brute_loss += function.horizontal_loss(p1,l1, p2, l2)
     return brute_loss
 
 class TestHorizontalSmoothnessLossCache(unittest.TestCase):
