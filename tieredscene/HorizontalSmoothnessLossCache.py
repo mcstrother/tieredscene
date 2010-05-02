@@ -46,7 +46,7 @@ class HorizontalSmoothnessLossCache(object):
                     loss_images[row, 0, ln1, ln2] = loss_function.horizontal_loss(None, None, pixel, label2)
         for ln1, label1 in enumerate(ls.all_labels): 
             for ln2, label2 in enumerate(ls.all_labels):
-                for row in xrange(1, image_array.shape[0]):
+                for row in xrange(image_array.shape[0]):
                     for column in xrange(1, image_array.shape[1]):
                         pixel1 = Pixel.Pixel(image_array, column-1, row)
                         pixel2 = Pixel.Pixel(image_array, column, row)

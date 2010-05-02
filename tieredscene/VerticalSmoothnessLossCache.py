@@ -49,7 +49,7 @@ class VerticalSmoothnessLossCache(object):
                 loss_images[0, col, label_num] = loss_function.vertical_loss(None, None, pixel, label)
         #fill in the rest of the loss images
         for label_num, label in enumerate(loss_function.label_set.all_labels):
-            for col in xrange(1, image_array.shape[1]):
+            for col in xrange(image_array.shape[1]):
                 for row in xrange(1, image_array.shape[0]):
                     pixel1 = Pixel.Pixel(image_array, col, row-1)
                     pixel2 = Pixel.Pixel(image_array, col, row)
@@ -82,21 +82,27 @@ class VerticalSmoothnessLossCache(object):
             assigning state to column
         """
         ls = state.label_set
-        loss = self._integral[state.i-1, column, ls.label_to_int(ls.top)] #top loss
-        #transition from top to middle
-        pixel1 = Pixel.Pixel(self._image_array, column, state.i-1)
-        pixel2 = Pixel.Pixel(self._image_array, column, state.i)
-        loss += self._loss_function.vertical_loss(pixel1, ls.top, pixel2, state.mlabel)
-        #middle loss
-        loss += self._integral[state.j-1, column, state.el] - self._integral[state.i, column, state.el]
-        #transition from middle to bottom
-        pixel1 = Pixel.Pixel(self._image_array, column, state.j-1)
-        pixel2 = Pixel.Pixel(self._image_array, column, state.j)
-        loss += self._loss_function.vertical_loss(pixel1, state.mlabel, pixel2, ls.bottom)
-        #bottom loss
-        loss += self._integral[-1, column, ls.label_to_int(ls.bottom) ] - self._integral[state.j, column, ls.label_to_int(ls.bottom) ]
+        loss = 0
+        if state.i >0: #if state.i==0 then no pixels are labeled as "top"
+            loss += self._integral[state.i-1, column, ls.label_to_int(ls.top)] #top loss
+            if state.j > state.i:
+                #transition from top to middle
+                pixel1 = Pixel.Pixel(self._image_array, column, state.i-1)
+                pixel2 = Pixel.Pixel(self._image_array, column, state.i)
+                loss += self._loss_function.vertical_loss(pixel1, ls.top, pixel2, state.mlabel)
+        if state.j > state.i:
+            #middle loss
+            loss += self._integral[state.j-1, column, state.el] - self._integral[state.i, column, state.el]
+            if self._image_array.shape[0] > state.j:
+                #transition from middle to bottom
+                pixel1 = Pixel.Pixel(self._image_array, column, state.j-1)
+                pixel2 = Pixel.Pixel(self._image_array, column, state.j)
+                loss += self._loss_function.vertical_loss(pixel1, state.mlabel, pixel2, ls.bottom)
+        if self._image_array.shape[0] > state.j:
+            #bottom loss
+            loss += self._integral[-1, column, ls.label_to_int(ls.bottom) ] - self._integral[state.j, column, ls.label_to_int(ls.bottom) ]
         if math.isnan(loss) or math.isinf(loss):
-            log.error('get_loss has returned an invalid loss, ' + str(loss))
+            log.error('Internal Error: get_loss has returned an invalid loss, ' + str(loss))
         return loss
         
         
