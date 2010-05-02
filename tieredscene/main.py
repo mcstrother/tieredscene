@@ -14,7 +14,7 @@ def init_logging():
     numpy.set_printoptions(threshold=numpy.nan)
     logging.basicConfig(stream = sys.stdout, level = logging.DEBUG)
 
-def parse_args():
+def parse_args(argv):
     usage = "%prog [options] FILE"
     parser = optparse.OptionParser(usage=usage)
     parser.add_option('-o', action='store', dest='output_name', default = 'segmentation.png' ,
@@ -34,7 +34,7 @@ def get_image_array(args):
 def main(argv):
     init_logging()
     (options, args) = parse_args(argv)
-    image_array = get_image_array()
+    image_array = get_image_array(args)
     data_loss_function = GeometricClassLabeling.GCLDataLossFunction()
     smoothness_loss_function = GeometricClassLabeling.GCLSmoothnessLossFunction(image_array)
     segmentation = Segmentation.Segmentation(image_array, data_loss_function, smoothness_loss_function)
