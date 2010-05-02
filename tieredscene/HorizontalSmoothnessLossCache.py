@@ -59,6 +59,7 @@ class HorizontalSmoothnessLossCache(object):
         for ln1, label1 in enumerate(ls.all_labels):
             for ln2, label2 in enumerate(ls.all_labels):
                 self._integral[:,:,ln1,ln2] = numpy.cumsum(loss_images[:,:,ln1,ln2], axis=0)
+        self._label_set = ls
         
         
     @property
@@ -70,7 +71,88 @@ class HorizontalSmoothnessLossCache(object):
         when column = 0, the value is the same for all values of labelnumber1
         """
         return self._integral
+
+    def get_decoupled_functions(self, col, previous_label, this_label, positioning ):
+        """The horizontal loss between `column` and the previous column broken down into functions of i, j, ib, and jb
         
+        A key observation of the Felzenszwalb paper is that if we fix the state of
+        the current column (label, i, and b), the label of the previous column, 
+        and the relative position of
+        i,j, ib, and jb (see below), the HorizontalSmoothnessLoss between a given
+        column and the column before it can be expressed as a sum of functions 5
+        functions -- 4 functions of only i, j, ib, or jb, and one constant function.
+        (Where i and j refer to the properties of the state assigned to the current
+        function, and ib and jb refer to the properties of the state assigned
+        to the previous function.)
+        
+        
+        Parameters
+        ----------
+        hslc :  a `HorizontalSmoothnessLossCache` object
+        col : the column of the loss table that we are currently calculating
+        previous_label : any label in self._label_set other than the top or bottom
+        this_label : any label in self._label_set other than the top or bottom
+        positioning : an integer representing the relative positing of i,j, i_bar, and j_bar 
+        
+        Returns
+        -------
+        (I, J, Ib, Jb, C) : a tuple of functions where the HorizontalSmoothnessLoss is equal to
+            I(i) + J(j) + Ib(ib) + Jb(jb) + C()
+        
+        The mapping for the `positioning` parameter is:
+        0. i, j, ib, jb
+        1. i, ib, j, jb
+        2. i, ib, jb, j
+        3. ib, i, j, jb
+        4. ib, i, jb, j
+        5. ib, jb, i, j
+        """
+        table = self.table
+        n = self._integral.shape[0]
+        ln1 = self._label_set.label_to_int(previous_label)
+        ln2 = self._label_set.label_to_int(this_label)
+        t = self._label_set.label_to_int(self._label_set.top)
+        b = self._label_set.label_to_int(self._label_set.bottom)
+        
+        
+        C = lambda : table[n-1, col, ln1, ln2] 
+        if positioning == 0:
+            I = lambda i: table[i, col, t, t] - table[i,col, t, ln2]
+            J = lambda j: table[j, col, t, ln2] - table[j, col, t, b]
+            Ib = lambda ib: table[ib, col, t, b] - table[ib, col, ln1, b]
+            Jb = lambda jb: table[jb, col, ln1, b] - table[jb, col, b, b]
+        elif positioning == 1:
+            I = lambda i: table[i, col, t,t] - table[i, col, t, ln2]
+            Ib = lambda ib: table[ib, col, t, ln2] - table[ib, col, ln1, ln2]
+            J = lambda j: table[j, col, ln1, ln2] - table[j, col, ln1, b]
+            Jb = lambda jb: table[jb, col, ln1, b] - table[jb, col, b, b]
+        elif positioning == 2:
+            I = lambda i: table[i, col, t, t] - table[i, col,t, ln2]
+            Ib = lambda ib: table[ib, col, t, ln2] - table[ib, col, ln1, ln2]
+            Jb = lambda jb: table[jb, col, ln1, ln2] - table[jb, col, b, ln2]
+            J = lambda j: table[j, col, b, ln2] - table[j, col, b, b] 
+        elif positioning == 3:
+            Ib = lambda ib: table[ib, col, t, t] - table[ib, col, ln1, t]
+            I = lambda i: table[i, col, ln1, t] - table[i, col, ln1, ln2]
+            J = lambda j: table[j, col, ln1, ln2] - table[j, col, ln1, b]
+            Jb = lambda jb: table[jb, col, ln1, b] - table[jb, col, b, b]
+        elif positioning == 4:
+            Ib = lambda ib: table[ib, col, t, t] - table[ib, col, ln1, t]
+            I = lambda i: table[i,  col, ln1, t] - table[i, col, ln1, ln2]
+            Jb = lambda jb: table[jb, col, ln1, ln2] - table[jb, col,b, ln2]
+            J = lambda j: table[j, col, b, ln2] - table[j, col, b, b]
+        elif positioning == 5:
+            Ib = lambda ib: table[ib, col, t, t] - table[ib, col, ln1, t]
+            Jb = lambda jb: table[jb, col, ln1, t] - table[jb, col, b, t]
+            I = lambda i: table[i, col, b, t] - table[i, col, b, ln2]
+            J = lambda j: table[j, col, b, ln2] - table[j, col, b, b]
+        else:
+            raise Exception("Invalid positioning.  Expected a number in range(6), but got " + str(positioning))
+        return (I,J,Ib,Jb,C)
+
+
+
+
     def get_loss(self, state1, state2, column2):
         """Get the loss implied by assigning state2 to column2 and state1 to column2-1
         
