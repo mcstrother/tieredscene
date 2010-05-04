@@ -122,9 +122,9 @@ class State(object):
         """
         num_rows = self._image_array_shape[0] # number of rows in the image
         out = numpy.empty(num_rows)
-        out[:self.i] = self.label_set.label_to_int(self.label_set.top)
+        out[:self.i] = self.tee
         out[self.i:self.j] = self.el
-        out[self.j:num_rows] = self.label_set.label_to_int(self.label_set.bottom)
+        out[self.j:num_rows] = self.bee
         return out
     
     def get_row_label(self, row):
