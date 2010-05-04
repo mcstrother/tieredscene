@@ -25,10 +25,10 @@ class GCLDataLossFunction(DataLossFunction.DataLossFunction):
 class GCLSmoothnessLossFunction(SmoothnessLossFunction.SmoothnessLossFunction):
     _label_set = gcl_label_set
     _hloss_table = numpy.array([[0, 1, 4, 1, 3 ],
-                                         [1, 0, 1, 1, 1 ],
-                                         [4, 1, 0, 1, 1 ],
-                                         [1, 1, 1, 0, 2 ],
-                                         [1, 1, 3, 2, 0 ]
+                                [1, 0, 1, 1, 1 ],
+                                [4, 1, 0, 1, 1 ],
+                                [1, 1, 1, 0, 2 ],
+                                [1, 1, 3, 2, 0 ]
                                          ])
     _w_coeff = .1 #TODO: may need to be tweaked
     min_gradient = .1

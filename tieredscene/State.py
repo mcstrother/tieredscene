@@ -32,8 +32,8 @@ class State(object):
             raise ValueError("mlabel " + str(mlabel) + " not found in the middle label_set")
         if (not int(i) == i) or (not int(j) == j):
             raise ValueError('i and j must have integer values')
-        if not (0 <= i <= image_array.shape[0]) and (i <= j <= image_array.shape[0]):
-            raise ValueError("i,j values (" + str(i) + ', ' + str(j) + ") are not valid for image_array of shape "+ image_array.shape)
+        if not ((0 <= i <= image_array.shape[0]) and (i <= j <= image_array.shape[0])):
+            raise ValueError("i,j values (" + str(i) + ', ' + str(j) + ") are not valid for image_array of shape "+ str(image_array.shape))
         
     
     @property
