@@ -114,9 +114,9 @@ class HorizontalSmoothnessLossCache(object):
         ln2 = self._label_set.label_to_int(this_label)
         t = self._label_set.label_to_int(self._label_set.top)
         b = self._label_set.label_to_int(self._label_set.bottom)
+    
         
-        
-        C = lambda : table[n-1, col, ln1, ln2] 
+        C = lambda : table[n-1, col, b, b] 
         if positioning == 0:
             I = lambda i: table[i, col, t, t] - table[i,col, t, ln2]
             J = lambda j: table[j, col, t, ln2] - table[j, col, t, b]

@@ -35,7 +35,7 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
         self.s2 = State(3, 7, self.label_set.middle[1], self.label_set, self.image_array)
         self.s3 = State(2, 5, self.label_set.middle[0], self.label_set, self.image_array)
         self.s4 = State(0, 1, self.label_set.middle[0], self.label_set, self.image_array)
-        self.hor_cache = hor_cache = HorizontalSmoothnessLossCache(self.image_array, self.function)
+        self.hor_cache =  HorizontalSmoothnessLossCache(self.image_array, self.function)
         
         
     def testFirstColumnLoss(self):
