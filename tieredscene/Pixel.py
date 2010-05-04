@@ -21,3 +21,7 @@ class Pixel(object):
     @property
     def row(self):
         return self._row
+    
+    @property
+    def value(self):
+        return self._image_array[self._row, self._column]
