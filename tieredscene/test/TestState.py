@@ -39,6 +39,29 @@ class Test(unittest.TestCase):
             test_list.append(state.as_int())
         self.assertEqual(test_list, range(18))
         
+        
+    def test_get_row_label(self):
+        #Test 1
+        s1 = State(0, 0, self.label_set.middle[0], self.label_set, self.image_array)
+        label_list = [self.label_set.bottom for i in xrange(self.image_array.shape[0])]
+        for row in xrange(len(label_list)):
+            self.assertEqual(s1.get_row_label(row), label_list[row])
+        #Test 2
+        s2 = State(0,1, self.label_set.middle[0], self.label_set, self.image_array )
+        label_list = [self.label_set.middle[0]] + [self.label_set.bottom for i in xrange(self.image_array.shape[0]-1)]
+        for row in xrange(len(label_list)):
+            self.assertEqual(s2.get_row_label(row), label_list[row])
+        #Test 3
+        s3 =  State(1,1, self.label_set.middle[0], self.label_set, self.image_array )
+        label_list = [self.label_set.top] + [self.label_set.bottom for i in xrange(self.image_array.shape[0]-1)]
+        for row in xrange(len(label_list)):
+            self.assertEqual(s3.get_row_label(row), label_list[row])
+        #Test 4
+        s4 = State(1,3, self.label_set.middle[1], self.label_set, self.image_array )
+        label_list = [self.label_set.top, self.label_set.middle[1], self.label_set.middle[1]] + [self.label_set.bottom for i in xrange(self.image_array.shape[0]-4)]
+        for row in xrange(len(label_list)):
+            self.assertEqual(s4.get_row_label(row), label_list[row])
+        
 suite = unittest.TestLoader().loadTestsFromTestCase(Test)
         
 if __name__ == "__main__":
