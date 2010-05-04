@@ -14,6 +14,10 @@ class Test(unittest.TestCase):
     def setUp(self):
         self.label_set = LabelSet(['1','2','3'])
         self.image_array = numpy.zeros((3,5))
+        self.s1 = State(0, 0, self.label_set.middle[0], self.label_set, self.image_array)
+        self.s2 = State(0,1, self.label_set.middle[0], self.label_set, self.image_array )
+        self.s3 =  State(1,1, self.label_set.middle[0], self.label_set, self.image_array )
+        self.s4 = State(1,3, self.label_set.middle[1], self.label_set, self.image_array )
         
 
     def test_as_int(self):
@@ -61,6 +65,15 @@ class Test(unittest.TestCase):
         label_list = [self.label_set.top, self.label_set.middle[1], self.label_set.middle[1]] + [self.label_set.bottom for i in xrange(self.image_array.shape[0]-4)]
         for row in xrange(len(label_list)):
             self.assertEqual(s4.get_row_label(row), label_list[row])
+            
+    def test_to_array(self):
+        truth = numpy.ones(self.image_array.shape[0]) * self.label_set.label_to_int(self.label_set.bottom)
+        self.assertTrue(numpy.all(self.s1.to_array()== truth))
+        
+        truth[0] = self.label_set.label_to_int(self.label_set.middle[0])
+        self.assertTrue(numpy.all(self.s2.to_array() == truth))
+        
+        
         
 suite = unittest.TestLoader().loadTestsFromTestCase(Test)
         
