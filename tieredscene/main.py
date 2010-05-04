@@ -9,6 +9,7 @@ import Image
 from tieredscene import GeometricClassLabeling, Segmentation
 import numpy
 import logging
+import matplotlib.pyplot as plt
 
 def init_logging():
     numpy.set_printoptions(threshold=numpy.nan)
@@ -38,8 +39,9 @@ def main(argv):
     data_loss_function = GeometricClassLabeling.GCLDataLossFunction()
     smoothness_loss_function = GeometricClassLabeling.GCLSmoothnessLossFunction(image_array)
     segmentation = Segmentation.Segmentation(image_array, data_loss_function, smoothness_loss_function)
-    out = Image.fromarray(segmentation.to_array())
-    out.save(options.output_name)
+    plt.imsave(options.output_name, segmentation.to_array())
+    #out = Image.fromarray(segmentation.to_array())
+    #out.save(options.output_name)
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))
