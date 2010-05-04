@@ -37,14 +37,14 @@ class _FTables(object):
     
     def __init__(self, hslc, label_set, image_array, loss_table_column, col_num, previous_label, this_label ):
         n = image_array.shape[0]
-        image_array = image_array
-        label_set = label_set
         self._fs = [None] *6
         for rel_pos in xrange(6):
             I, J, Ib, Jb, C = hslc.get_decoupled_functions(col_num,previous_label, this_label, rel_pos) 
             Ep = self._get_E_prime(n, label_set, image_array, loss_table_column,  col_num, previous_label, Ib, Jb, rel_pos)
             h = self._get_h(n, label_set, image_array, loss_table_column,  col_num, previous_label, Ep, Ib, Jb, rel_pos)
-            self._fs[rel_pos] = lambda i,j : (I(i) + J(j) + C() + h(i,j)[0], h(i,j)[2], h(i,j)[1])
+            self._fs[rel_pos] = lambda i,j : (I(i) + J(j) + C() + h(i,j)[0], 
+                                              h(i,j)[1], 
+                                              h(i,j)[2])
         
     def get_best_prev_i_j(self, i, j, relative_positioning):
         return self._fs[relative_positioning](i,j)
@@ -84,24 +84,32 @@ class _FTables(object):
                 previous_state = State(ib, jb, previous_label, label_set, image_array)
                 val_arr[ib]= loss_table_column[previous_state.as_int()] + Ib(ib)
             ep_table[jb], ep_ind_table[jb] = running_min(val_arr)
+            #ep_table[jb][x] = for a given jb, what is the minimum value of loss_table_column[previous_state.as_int()] + Ib(ib) if ib is allowed to run from 0 to x
+            #ep_ind_table[jb][x] gives the value  of ib for which the min above occurs
+            #the reverse_ep... tables work the same, except the min is over i running from x to jb
             reverse_ep_table[jb], reverse_ep_ind_table[jb] = running_min(val_arr, reverse = True)
         ep_list[5] = lambda jb: (ep_table[jb][jb], ep_ind_table[jb][jb] )
         ep_list[2] =  lambda i, jb: (reverse_ep_table[jb][i], reverse_ep_ind_table[jb][i]  )
         ep_list[4] = ep_list[3] = lambda i, jb: (ep_table[jb][i], ep_ind_table[jb][i] )
         ep_list[0]= lambda j, jb: (reverse_ep_table[jb][j], reverse_ep_ind_table[jb][j])
         #get ep for relative_positioning = 1
-        ep_table2 = [None] * n
-        ep_ind_table2 = [None] * n
-        for ib in xrange(n):
-            val_arr = numpy.empty(n-ib)
-            for jb in xrange(ib, n):
-                previous_state = State(ib,jb, previous_label, label_set, image_array)
-                val_arr[jb-ib] = loss_table_column[previous_state.as_int()] + Jb(jb)
-            ep_table2[ib], ep_ind_table2[ib] = running_min(val_arr, reverse = True)
-            ep_ind_table2[ib] = ep_ind_table2[ib] + ib
-        ep_list[1] =  lambda j, ib: (ep_table2[ib][j-ib], ep_ind_table2[ib][j-ib])
+        ep_list[1] = self._rel_pos_1_ep_subcase(n, label_set, image_array, loss_table_column, col, previous_label, Ib, Jb, rel_pos)
         return ep_list[rel_pos]
-                
+    
+    def _rel_pos_1_ep_subcase(self, n, label_set, image_array, loss_table_column,  col, previous_label, Ib, Jb, rel_pos):
+        if rel_pos == 1:
+            ep_table2 = [None] * n
+            ep_ind_table2 = [None] * n
+            for ib in xrange(n):
+                val_arr = numpy.empty(n-ib)
+                for jb in xrange(ib, n):
+                    previous_state = State(ib,jb, previous_label, label_set, image_array)
+                    val_arr[jb-ib] = loss_table_column[previous_state.as_int()] + Jb(jb)
+                ep_table2[ib], ep_ind_table2[ib] = running_min(val_arr, reverse = True)
+                ep_ind_table2[ib] = ep_ind_table2[ib] + ib
+            return lambda j, ib: (ep_table2[ib][j-ib], ep_ind_table2[ib][j-ib]) #note that this returns a value and an index for __jb__, not ib
+        else:
+            return None
         
     
     def _get_h(self, n, label_set, image_array, loss_table_column,  col, previous_label, Ep, Ib, Jb, rel_pos):
@@ -176,7 +184,7 @@ class _FTables(object):
                 h_table[i], h_ind_table[i] = running_min(val_arr)
                 ep_ind_table[i] = numpy.array([ep_ind_arr[ind] for ind in h_ind_table[i] ])
                 h_ind_table[i] = h_ind_table[i] + i
-            h_out = lambda i,j: (h_table[i][j], ep_ind_table[i][j], h_ind_table[i][j] )
+            h_out = lambda i,j: (h_table[i][j], ep_ind_table[i][j], h_ind_table[i][j] ) #(value, ib, jb)
         elif rel_pos == 5:
             val_arr = numpy.empty(n)
             ep_ind_arr = numpy.empty(n)
@@ -246,8 +254,6 @@ class LossTable(object):
                                     best_prev_state_value = curr_value
                             self._table[curr_state.as_int(), column] = best_prev_state_value + u.get_loss(curr_state, column)
                             self._trace[curr_state.as_int(), column] = best_prev_state.as_int()
-        log.debug('Final DP loss table is '  + repr(self._table))
-        log.debug('Final DP trace table is '  + repr(self._trace))
         self._label_set = label_set
         self._image_array = image_array
         
@@ -257,6 +263,7 @@ class LossTable(object):
         state_ind_list[m-1] = numpy.argmin(self._table[:,m-1]) #the best final state
         for col in xrange(m-2, -1, -1):
             state_ind_list[col] = self._trace[ state_ind_list[col+1]  ,col+1]
+            
         state_list = [State.from_int(ind, self._label_set, self._image_array) for ind in state_ind_list]
         return state_list 
         
