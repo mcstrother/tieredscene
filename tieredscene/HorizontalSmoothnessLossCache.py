@@ -115,7 +115,7 @@ class HorizontalSmoothnessLossCache(object):
         t = self._label_set.label_to_int(self._label_set.top)
         b = self._label_set.label_to_int(self._label_set.bottom)
     
-        
+        #TODO: am I missing a bunch of -1's in here?
         C = lambda : table[n-1, col, b, b] 
         if positioning == 0:
             I = lambda i: table[i, col, t, t] - table[i,col, t, ln2]
@@ -167,6 +167,12 @@ class HorizontalSmoothnessLossCache(object):
         -------
         loss : a number
         """
+        if state1 == None:
+            top_loss = self._integral[state2.i-1, 0,0, state2.tee]
+            middle_loss = self._integral[state2.j-1, 0,0, state2.el] - self._integral[state2.i-1, 0,0, state2.el]
+            bottom_loss = self._integral[-1, 0, 0, state2.bee] - self._integral[state2.j-1, 0,0, state2.bee]
+            return top_loss + middle_loss + bottom_loss
+            
         ib = state1.i
         jb = state1.j
         i = state2.i
