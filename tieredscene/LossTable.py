@@ -15,6 +15,10 @@ log = logging.getLogger('tieredscene.LossTable')
 flog = logging.getLogger('tieredscene.LossTable._FTables')
 
 class _UTable(object):
+    """
+    Precalculates and stores the part of the loss that can be calculated
+    on a single-column basis.
+    """
     
     def __init__(self, image_array, data_loss_func, smoothness_loss_func):
         log.info('Precalculating Vertical Smoothness Loss and Data Loss')
@@ -23,6 +27,8 @@ class _UTable(object):
         log.info('done precalculating vertical smoothness loss and data loss')
     
     def get_loss(self, state, column):
+        """O(1) calculation of sum of data loss and vertical smoothness loss for state/column pair
+        """
         return self._vslc.get_loss(state, column) + self._dlc.get_loss(state, column)
 
 
@@ -214,8 +220,9 @@ class LossTable(object):
         log.info('horizontal smoothness loss precalculated')
         u = _UTable(image_array, data_loss_func, smoothness_loss_func)
         #initialize the table and fill in the first column
-        self._table = numpy.zeros((State.count_states(image_array, label_set), image_array.shape[1]  ) )
-        self._table[:, 0] = [u.get_loss(State.from_int(i, label_set, image_array), 0) for i in range(self._table.shape[0] ) ] #init the first column of the table
+        self._table = numpy.zeros((State.count_states(image_array, label_set), image_array.shape[1]  ) ) #number of states by number of columns
+        self._table[:, 0] = [u.get_loss(State.from_int(i, label_set, image_array), 0) + hslc.get_loss(None, State.from_int(i,label_set, image_array), 0)
+                              for i in range(self._table.shape[0] ) ] #init the first column of the table
         self._trace = numpy.zeros((State.count_states(image_array, label_set), image_array.shape[1]  ) ) # the number in each cell corresponds to the optimal state number for the preceding column
         n = image_array.shape[0]
         
