@@ -73,7 +73,19 @@ class Test(unittest.TestCase):
         truth[0] = self.label_set.label_to_int(self.label_set.middle[0])
         self.assertTrue(numpy.all(self.s2.to_array() == truth))
         
-        
+    def test_get_relative_positioning(self):
+        image_array = numpy.empty((10,10))
+        #rel_pos 2
+        s1 = State(3,7, self.label_set.middle[0], self.label_set, image_array)
+        s2 = State(2,8, self.label_set.middle[0], self.label_set, image_array)
+        self.assertEqual(State.get_relative_positioning(s1, s2), 2)
+        #rel_pos 3
+        self.assertEqual(State.get_relative_positioning(s2,s1 ), 3)
+        #rel_pos 0
+        s3 = State(1,1, self.label_set.middle[0], self.label_set, image_array)
+        self.assertEqual(State.get_relative_positioning(s1, s3), 0)
+        #rel_pos 5
+        self.assertEqual(State.get_relative_positioning(s3, s1), 5)
         
 suite = unittest.TestLoader().loadTestsFromTestCase(Test)
         
