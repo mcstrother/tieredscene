@@ -5,8 +5,7 @@ Created on Apr 5, 2010
 '''
 
 
-from tieredscene import DataLossFunction
-from tieredscene import SmoothnessLossFunction
+from tieredscene.lossfunctions import DataLossFunction, SmoothnessLossFunction
 from tieredscene import LabelSet
 import numpy
 
@@ -64,5 +63,6 @@ class GCLSmoothnessLossFunction(SmoothnessLossFunction.SmoothnessLossFunction):
         out = w * int(label1 == label2)
         return out
         
-        
+DataLossFunc  = GCLDataLossFunction
+SmoothnessLossFunc = GCLSmoothnessLossFunction
         
