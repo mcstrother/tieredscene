@@ -44,11 +44,7 @@ class DataLossCache(object):
                     pixel = Pixel.Pixel(image_array, col, row)
                     loss_images[row, col, label_num] = loss_function(pixel, label)
         #compute running sums over all columns of each loss-image
-        self._integral = numpy.empty((image_array.shape[0], 
-                                      image_array.shape[1], 
-                                      loss_function.label_set.get_label_count()))
-        for label_num, label in enumerate(loss_function.label_set.all_labels):
-            self._integral[:,:,label_num] = numpy.cumsum( loss_images[:,:,label_num], axis=0 )
+        self._integral = numpy.cumsum(loss_images, axis = 0)
         
     def get_loss(self, state, column):
         """Returns the total data loss implied

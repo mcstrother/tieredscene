@@ -55,15 +55,10 @@ class VerticalSmoothnessLossCache(object):
                     pixel2 = Pixel.Pixel(image_array, col, row)
                     loss_images[row, col, label_num] = loss_function.vertical_loss(pixel1, label, pixel2, label)
         #compute running sums over all columns of each loss-image
-        self._integral = numpy.empty((image_array.shape[0], 
-                                      image_array.shape[1], 
-                                      loss_function.label_set.get_label_count()))
-        for label_num, label in enumerate(loss_function.label_set.all_labels):
-            self._integral[:,:,label_num] = numpy.cumsum( loss_images[:,:,label_num], axis=0 )
+        self._integral = numpy.cumsum(loss_images, axis = 0)
         #self._integral is now a 3 dimensional array.  The number in self.integral[rw, col, ln]
         # represents the cumulative vertical smoothness loss if all pixels in column col from row 0
         # through row rw are assigned the label number ln
-        
         #save references for later.  needed in self.get_loss
         self._loss_function = loss_function
         self._image_array = image_array

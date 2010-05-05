@@ -53,13 +53,7 @@ class HorizontalSmoothnessLossCache(object):
                         pixel2 = Pixel.Pixel(image_array, column, row)
                         loss_images[row, column, ln1, ln2] = loss_function.horizontal_loss(pixel1, label1, pixel2, label2)
         #compute running sums down each column of each loss image
-        self._integral = numpy.empty((image_array.shape[0], 
-                                      image_array.shape[1], 
-                                      ls.get_label_count(),
-                                      ls.get_label_count()))
-        for ln1, label1 in enumerate(ls.all_labels):
-            for ln2, label2 in enumerate(ls.all_labels):
-                self._integral[:,:,ln1,ln2] = numpy.cumsum(loss_images[:,:,ln1,ln2], axis=0)
+        self._integral = numpy.cumsum(loss_images, axis =0)
         self._label_set = ls
         
         
@@ -109,14 +103,16 @@ class HorizontalSmoothnessLossCache(object):
         5. ib, jb, i, j
         """
         table = self.table
+        ls = self._label_set
+        zeros = numpy.zeros((1, self._integral.shape[1],ls.get_label_count(), ls.get_label_count()))
+        table = numpy.concatenate((table, zeros),axis =0) #add a row of zeros to the beginning of the integral image so the code below works.
         n = self._integral.shape[0]
         ln1 = self._label_set.label_to_int(previous_label)
         ln2 = self._label_set.label_to_int(this_label)
         t = self._label_set.label_to_int(self._label_set.top)
         b = self._label_set.label_to_int(self._label_set.bottom)
     
-        #TODO: am I missing a bunch of -1's in here?
-        C = lambda : table[n-1, col, b, b] 
+        C = lambda : table[-1, col, b, b] 
         if positioning == 0:
             I = lambda i: table[i, col, t, t] - table[i,col, t, ln2]
             J = lambda j: table[j, col, t, ln2] - table[j, col, t, b]
@@ -168,9 +164,18 @@ class HorizontalSmoothnessLossCache(object):
         loss : a number
         """
         if state1 == None:
-            top_loss = self._integral[state2.i-1, 0,0, state2.tee]
-            middle_loss = self._integral[state2.j-1, 0,0, state2.el] - self._integral[state2.i-1, 0,0, state2.el]
-            bottom_loss = self._integral[-1, 0, 0, state2.bee] - self._integral[state2.j-1, 0,0, state2.bee]
+            if state2.i > 0:
+                top_loss = self._integral[state2.i-1, 0,0, state2.tee]
+            else:
+                top_loss = 0
+            if state2.j>state2.i:
+                middle_loss = self._integral[state2.j-1, 0,0, state2.el] - self._integral[state2.i-1, 0,0, state2.el]
+            else:
+                middle_loss =0
+            if self._integral.shape[1] > state2.j:
+                bottom_loss = self._integral[-1, 0, 0, state2.bee] - self._integral[state2.j-1, 0,0, state2.bee]
+            else:
+                bottom_loss = 0
             return top_loss + middle_loss + bottom_loss
             
         ib = state1.i
