@@ -22,7 +22,7 @@ class SimpleDataLossFunction(DataLossFunction.DataLossFunction):
                      'B':0   }
     
     def __call__(self, pixel, label):
-        return abs(pixel.value - self.dict[label])*100
+        return int(pixel.value != self.dict[label])
         #raise NotImplementedError("TODO: fill this in using the per pixel class confidences from reference 9 from the paper")
     
     

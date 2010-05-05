@@ -222,6 +222,7 @@ class LossTable(object):
         '''
         if not ( data_loss_func.label_set == smoothness_loss_func.label_set ):
             raise ValueError('data_loss_func and smoothness_loss_func must operate over the same label set')
+        
         label_set = data_loss_func.label_set
         log.info('Precalculating horizontal smoothness loss')
         hslc = HorizontalSmoothnessLossCache(image_array, smoothness_loss_func)
@@ -257,7 +258,7 @@ class LossTable(object):
         self._label_set = label_set
         self._image_array = image_array
 
-    """        
+
     def get_optimal_state_list(self):
         m = self._image_array.shape[1] #m = number of columns in the image
         state_ind_list = [None] * m
@@ -267,8 +268,10 @@ class LossTable(object):
             
         state_list = [State.from_int(ind, self._label_set, self._image_array) for ind in state_ind_list]
         return state_list 
+    
     """
 
     def get_optimal_state_list(self):
         state_inds = numpy.argmin(self._table, axis =0).tolist()
         return [State.from_int(ind, self._label_set, self._image_array) for ind in state_inds  ]     
+    """
