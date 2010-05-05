@@ -22,9 +22,9 @@ def _get_brute_loss(function, image_array, col, s1, s2):
             p1 = None
             l1 = None
         else:
-            p1 = Pixel(image_array, col, row)
+            p1 = Pixel(image_array, col-1, row)
             l1 = s1.get_row_label(row)
-        p2 = Pixel(image_array, col-1, row)
+        p2 = Pixel(image_array, col, row)
         l2 = s2.get_row_label(row)
         brute_loss += function.horizontal_loss(p1,l1, p2, l2)
     return brute_loss
