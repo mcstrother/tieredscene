@@ -66,6 +66,26 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
             self.assertEqual(cache_loss, self.hor_cache.get_loss(None, state, 0))
             self.assertAlmostEqual(cache_loss, brute_loss)
     
+    def testGetLoss0(self):
+        col = 3
+        t = self.s2.tee
+        b = self.s2.bee
+        brute_loss = _get_brute_loss(self.function, self.image_array,col, self.s2, self.s3)
+        cache_loss = 0
+        #3,7,1
+        #2,5,0
+        table = self.hor_cache.table
+        cache_loss += table[2-1,col,t,t]
+        cache_loss += table[3-1, col, t, self.s3.el] - table[2-1, col, t, self.s3.el]
+        cache_loss += table[5-1, col, self.s2.el, self.s3.el] - table[3-1, col, self.s2.el, self.s3.el]
+        cache_loss += table[7-1, col, self.s2.el, b] - table[5-1, col, self.s2.el, b]
+        cache_loss += table[-1, col, b, b] - table[7-1, col, b, b]
+
+        cache_loss2 = self.hor_cache.get_loss(self.s2, self.s3, col)
+        self.assertAlmostEqual(cache_loss2, cache_loss)
+        self.assertAlmostEqual(cache_loss, brute_loss)
+        
+    
     def testGetLoss1(self):
         """Test HorizontalSmoothnessLossCache with ib = jb= i = j = 0
         """
@@ -111,11 +131,11 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
     def testExtremelySimple(self):
         image_array = np.random.random((3,3))
         function = Simple.SmoothnessLossFunc(image_array)
-        self.hor_cache =  HorizontalSmoothnessLossCache(image_array, function)
+        hor_cache =  HorizontalSmoothnessLossCache(image_array, function)
         s1 = State(1, 1, function.label_set.middle[0], function.label_set, image_array)
         s2 = State(1, 2, function.label_set.middle[0], function.label_set, image_array)
         brute_loss = _get_brute_loss(function, image_array, 1, s1, s2)
-        cache_loss = self.hor_cache.get_loss(s1, s2, 1)
+        cache_loss = hor_cache.get_loss(s1, s2, 1)
         self.assertAlmostEqual(cache_loss, brute_loss)
         
 
