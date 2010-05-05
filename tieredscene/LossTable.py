@@ -200,7 +200,7 @@ class _FTables(object):
         
     
 
-
+import functools
 
 class LossTable(object):
     '''
@@ -256,7 +256,8 @@ class LossTable(object):
                             self._trace[curr_state.as_int(), column] = best_prev_state.as_int()
         self._label_set = label_set
         self._image_array = image_array
-        
+
+    """        
     def get_optimal_state_list(self):
         m = self._image_array.shape[1] #m = number of columns in the image
         state_ind_list = [None] * m
@@ -266,7 +267,8 @@ class LossTable(object):
             
         state_list = [State.from_int(ind, self._label_set, self._image_array) for ind in state_ind_list]
         return state_list 
-        
-        
+    """
 
-        
+    def get_optimal_state_list(self):
+        state_inds = numpy.argmin(self._table, axis =0).tolist()
+        return [State.from_int(ind, self._label_set, self._image_array) for ind in state_inds  ]     

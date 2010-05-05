@@ -15,7 +15,7 @@ from tieredscene.Pixel import Pixel
 class TestVerticalSmoothnessLossCache(unittest.TestCase):
 
     def setUp(self):
-        self.image_array = np.array(Image.open('testimage_tiny.png').convert('L'))
+        self.image_array = np.array(Image.open('tiny_texture.png').convert('L'))
         self.function = GCLSmoothnessLossFunction(self.image_array)
         self.label_set = self.function.label_set 
         

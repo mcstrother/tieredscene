@@ -68,9 +68,13 @@ class DataLossCache(object):
         if state.i >0:
             loss +=  self._integral[state.i-1 , column, ls.label_to_int(ls.top) ] #top loss
         if state.j > state.i:
-            loss += self._integral[state.j-1, column, state.el] - self._integral[state.i-1, column, state.el] # middle loss 
+            loss += self._integral[state.j-1, column, state.el] 
+            if state.i>0:
+                loss -= self._integral[state.i-1, column, state.el] # middle loss 
         if self._integral.shape[0] > state.j:
-            loss += self._integral[-1, column, ls.label_to_int(ls.bottom)] - self._integral[state.j-1, column, ls.label_to_int(ls.bottom)] # bottom loss
+            loss += self._integral[-1, column, ls.label_to_int(ls.bottom)]
+            if state.j>0:
+                loss -= self._integral[state.j-1, column, ls.label_to_int(ls.bottom)] # bottom loss
         if math.isnan(loss) or math.isinf(loss):
             log.error('get_loss has returned an invalid loss, ' + str(loss))
         return loss
