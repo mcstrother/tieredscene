@@ -140,9 +140,9 @@ class State(object):
         """
         if 0 <= row < self.i:
             return self._label_set.top
-        elif row < self.j:
+        elif self.i <=row < self.j:
             return self.mlabel
-        elif row < self._image_array_shape[0]:
+        elif self.j <=row < self._image_array_shape[0]:
             return self._label_set.bottom
         else:
             raise IndexError('Invalid row number, '  + str(row))

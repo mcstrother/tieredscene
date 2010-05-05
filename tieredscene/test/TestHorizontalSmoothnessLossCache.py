@@ -5,12 +5,12 @@ Created on May 1, 2010
 '''
 import unittest
 import numpy as np
-from tieredscene.GeometricClassLabeling import GCLSmoothnessLossFunction
+from tieredscene.lossfunctions.GeometricClassLabeling import GCLSmoothnessLossFunction
 from tieredscene.HorizontalSmoothnessLossCache import HorizontalSmoothnessLossCache
 from tieredscene.State import State
 from tieredscene.Pixel import Pixel
 import Image
-
+from tieredscene.lossfunctions import Simple
 
 def _get_brute_loss(function, image_array, col, s1, s2):
     """Calculate the horizontal smoothness loss
@@ -18,9 +18,13 @@ def _get_brute_loss(function, image_array, col, s1, s2):
     """
     brute_loss = 0
     for row in xrange(image_array.shape[0]):
-        p1 = Pixel(image_array, 10, row)
-        p2 = Pixel(image_array, 9, row)
-        l1 = s1.get_row_label(row)
+        if s1 is None:
+            p1 = None
+            l1 = None
+        else:
+            p1 = Pixel(image_array, col, row)
+            l1 = s1.get_row_label(row)
+        p2 = Pixel(image_array, col-1, row)
         l2 = s2.get_row_label(row)
         brute_loss += function.horizontal_loss(p1,l1, p2, l2)
     return brute_loss
@@ -51,6 +55,7 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
                 p2 = Pixel(self.image_array, 0, row)
                 l2 = state.get_row_label(row)
                 brute_loss += self.function.horizontal_loss(None, None, p2, l2)
+            self.assertEqual(brute_loss, _get_brute_loss(self.function, self.image_array, 0, None, state))
             cache_loss = 0
             if state.i>0:
                 cache_loss += self.hor_cache.table[state.i-1, 0, 0, state.tee]
@@ -58,6 +63,7 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
                 cache_loss += self.hor_cache.table[state.j-1, 0,0, state.el] - self.hor_cache.table[state.i-1, 0, 0, state.tee]
             if self.image_array.shape[0]>state.j:
                 cache_loss += self.hor_cache.table[self.image_array.shape[0]-1, 0,0, state.tee] - self.hor_cache.table[state.j-1, 0,0, state.el]
+            self.assertEqual(cache_loss, self.hor_cache.get_loss(None, state, 0))
             self.assertAlmostEqual(cache_loss, brute_loss)
     
     def testGetLoss1(self):
@@ -102,6 +108,16 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
         cache_loss = self.hor_cache.get_loss(self.s2, self.s4, 10)
         self.assertAlmostEqual(cache_loss, brute_loss)
     
+    def testExtremelySimple(self):
+        image_array = np.random.random((3,3))
+        function = Simple.SmoothnessLossFunc(image_array)
+        self.hor_cache =  HorizontalSmoothnessLossCache(image_array, function)
+        s1 = State(1, 1, function.label_set.middle[0], function.label_set, image_array)
+        s2 = State(1, 2, function.label_set.middle[0], function.label_set, image_array)
+        brute_loss = _get_brute_loss(function, image_array, 1, s1, s2)
+        cache_loss = self.hor_cache.get_loss(s1, s2, 1)
+        self.assertAlmostEqual(cache_loss, brute_loss)
+        
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestHorizontalSmoothnessLossCache)
 

@@ -10,6 +10,7 @@ import numpy
 import logging
 import matplotlib.pyplot as plt
 import Segmentation
+import logging
 
 def init_logging():
     numpy.set_printoptions(threshold=numpy.nan)
@@ -38,14 +39,13 @@ def main(argv):
     init_logging()
     (options, args) = parse_args(argv)
     function_module = __import__('tieredscene.lossfunctions.' + options.loss_function, fromlist = ['DataLossFunc','SmoothnessLossFunction'])
-    print function_module.__name__
+    logging.info('Using loss function module ' + function_module.__name__)
     image_array = get_image_array(args)
     data_loss_function = function_module.DataLossFunc()
     smoothness_loss_function = function_module.SmoothnessLossFunc(image_array)
     segmentation = Segmentation.Segmentation(image_array, data_loss_function, smoothness_loss_function)
     plt.imsave(options.output_name, segmentation.to_array())
-    #out = Image.fromarray(segmentation.to_array())
-    #out.save(options.output_name)
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))

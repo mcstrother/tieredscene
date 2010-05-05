@@ -6,7 +6,7 @@ Created on May 1, 2010
 import unittest
 import Image
 import numpy as np
-from tieredscene.GeometricClassLabeling import GCLSmoothnessLossFunction
+from tieredscene.lossfunctions.GeometricClassLabeling import GCLSmoothnessLossFunction
 from tieredscene.VerticalSmoothnessLossCache import VerticalSmoothnessLossCache
 from tieredscene.HorizontalSmoothnessLossCache import HorizontalSmoothnessLossCache
 from tieredscene.State import State
