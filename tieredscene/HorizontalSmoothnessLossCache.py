@@ -105,7 +105,7 @@ class HorizontalSmoothnessLossCache(object):
         table = self.table
         ls = self._label_set
         zeros = numpy.zeros((1, self._integral.shape[1],ls.get_label_count(), ls.get_label_count()))
-        table = numpy.concatenate((table, zeros),axis =0) #add a row of zeros to the beginning of the integral image so the code below works.
+        table = numpy.concatenate((zeros, table),axis =0) #add a row of zeros to the beginning of the integral image so the code below works.
         n = self._integral.shape[0]
         ln1 = self._label_set.label_to_int(previous_label)
         ln2 = self._label_set.label_to_int(this_label)
