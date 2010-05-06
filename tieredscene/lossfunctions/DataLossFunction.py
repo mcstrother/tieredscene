@@ -29,7 +29,7 @@ class DataLossFunction(object):
 
     @property
     def label_set(self):
-        if self._label_set:
+        if self._label_set is None:
             raise ValueError("Subclass of DataLossFunction has not defined a _label_set variable.")
         else:
             return self._label_set
