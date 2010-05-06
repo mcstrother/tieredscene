@@ -63,7 +63,7 @@ class State(object):
         """Creates and returns a state object corresponding to the given int
         
         """
-        rowc = float(image_array.shape[0])
+        rowc = float(image_array.shape[0])+1
         
         el_multiplier = (rowc/2) * (rowc+1)
         el_num = int(math.floor(ind/( el_multiplier )))
@@ -86,7 +86,7 @@ class State(object):
         The returned int lies in the range 0 to (# of rows in image) + 
         (# columns in image) + (# of middle labels) - 1
         """
-        r = self._image_array_shape[0] # number of rows in the image
+        r = self._image_array_shape[0]+1 # number of rows in the image
         i_term = self.i * (-.5 * self.i  + r + .5 )
         
         j_term = self.j - self.i
@@ -105,7 +105,7 @@ class State(object):
         times the total number of valid i,j pairs.
         """
         el = len(label_set.middle)
-        r = image_array.shape[0]
+        r = image_array.shape[0] + 1
         out = el * r/2.0*(r+1)
         if int(out) != out:
             raise Error('An internal error has occured.')

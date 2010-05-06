@@ -21,13 +21,14 @@ class Test(unittest.TestCase):
         
 
     def test_as_int(self):
+        #Test that each state is mapped to the correct int
         test_list =[]
         for el in self.label_set.middle:
-            for i in xrange(0, 3):
-                for j in xrange(i,3):
+            for i in xrange(0, 4):
+                for j in xrange(i,4):
                     state = State(i, j, el, self.label_set, self.image_array)
                     test_list.append(state.as_int())
-        self.assertEqual(test_list, range(18))
+        self.assertEqual(test_list, range(len(test_list)))
         
         #Test State.count_states
         state_count = State.count_states(self.image_array, self.label_set)
@@ -38,7 +39,7 @@ class Test(unittest.TestCase):
     
     def test_from_int(self):
         test_list = []
-        for x in range(18):
+        for x in range(State.count_states(self.image_array, self.label_set)):
             state = State.from_int(x, self.label_set, self.image_array)
             test_list.append(state.as_int())
         self.assertEqual(test_list, range(18))
