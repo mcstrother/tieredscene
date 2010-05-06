@@ -42,7 +42,7 @@ class Test(unittest.TestCase):
         for x in range(State.count_states(self.image_array, self.label_set)):
             state = State.from_int(x, self.label_set, self.image_array)
             test_list.append(state.as_int())
-        self.assertEqual(test_list, range(18))
+        self.assertEqual(test_list, range(State.count_states(self.image_array, self.label_set)))
         
         
     def test_get_row_label(self):
