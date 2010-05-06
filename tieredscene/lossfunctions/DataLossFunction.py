@@ -22,11 +22,6 @@ class DataLossFunction(object):
     """
     _label_set = None
     
-    def __init__(self):
-        raise NotImplementedError("DataLossFunction is an abstract class")
-    
-    
-    
     def __call__(self, pixel, label):
         """
         """

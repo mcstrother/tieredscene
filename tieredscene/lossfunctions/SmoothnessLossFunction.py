@@ -7,10 +7,7 @@ Created on Apr 4, 2010
 
 class SmoothnessLossFunction(object):
     _label_set = None
-    
-    def __init__(self):
-        raise NotImplementedError("DataLossFunction is an abstract class")
-    
+
     
     def __call__(self, pixel1, label1, pixel2, label2):
         """Gets the smoothness loss implied by assigning labels to pixels.
