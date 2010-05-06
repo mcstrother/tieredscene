@@ -23,8 +23,7 @@ class DataLossFunction(object):
     _label_set = None
     
     def __init__(self):
-        if self._label_set is None:
-            raise NotImplementedError("Subclasses of DataLossFunction must define a '_label_set' class variable.")
+        raise NotImplementedError("DataLossFunction is an abstract class")
     
     
     
@@ -35,5 +34,7 @@ class DataLossFunction(object):
 
     @property
     def label_set(self):
-        return self._label_set
-
+        if self._label_set:
+            raise ValueError("Subclass of DataLossFunction has not defined a _label_set variable.")
+        else:
+            return self._label_set

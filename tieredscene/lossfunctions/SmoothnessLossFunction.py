@@ -9,8 +9,8 @@ class SmoothnessLossFunction(object):
     _label_set = None
     
     def __init__(self):
-        if self._label_set is None:
-            raise NotImplementedError("Subclasses of SmoothnessLossFunction must define a '_label_set' class variable.")
+        raise NotImplementedError("DataLossFunction is an abstract class")
+    
     
     def __call__(self, pixel1, label1, pixel2, label2):
         """Gets the smoothness loss implied by assigning labels to pixels.
@@ -54,4 +54,7 @@ class SmoothnessLossFunction(object):
     
     @property
     def label_set(self):
-        return self._label_set
+        if self._label_set:
+            raise ValueError("Subclass of SmoothnessLossFunction has not defined a _label_set variable.")
+        else:
+            return self._label_set

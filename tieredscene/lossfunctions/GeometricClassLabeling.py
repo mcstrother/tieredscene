@@ -34,7 +34,6 @@ class GCLSmoothnessLossFunction(SmoothnessLossFunction.SmoothnessLossFunction):
     
     #TODO: calculate the w term
     def __init__(self, image_array):
-        SmoothnessLossFunction.SmoothnessLossFunction.__init__(self)
         if len(image_array.shape) != 2:
             raise ValueError('image_array must have dimension 2.  Check that a black and white image is being used.')
         self._vgrad, self._hgrad = numpy.gradient(image_array)
