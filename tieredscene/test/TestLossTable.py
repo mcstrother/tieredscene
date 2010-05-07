@@ -14,7 +14,7 @@ test_label_set1 = LabelSet(['M'], 'T', 'B')
 
 class TestDataLossFunction1(DataLossFunction.DataLossFunction):
     _label_set = test_label_set1
-    _table = {'M' : [3, 0, 1, 3],
+    _table = {'M' : [1, 0, 1, 3],
               'T' : [0, 1, 3, 3],
               'B' : [4, 4, 3, 2] }
     
@@ -59,11 +59,20 @@ class TestLossTable(unittest.TestCase):
         """
         loss_table = LossTable(self.image_array1, self.data_func1, self.smoothness_func1)
         num_states = State.count_states(self.image_array1, test_label_set1)
-        print "Number of states " + str(num_states)
-        print "States in order are:"
-        for sn in xrange(num_states):
-            print str(State.from_int(sn, test_label_set1, self.image_array1))
-
+        expected_u_table = np.array([[9,9,10],
+                                   [5,6,7],
+                                   [3,4,5],
+                                   [4,5,3],
+                                   [6,5,6],
+                                   [4,3,4],
+                                   [5,4,2],
+                                   [6,5,6],
+                                   [7,6,4],
+                                   [7,6,6]])
+        for col in xrange(self.image_array1.shape[1]):
+            for sn in xrange(num_states):
+                state = State.from_int(sn, test_label_set1, self.image_array1)
+                self.assertEqual(expected_u_table[sn, col], loss_table._u.get_loss(state,col),  msg = "Failed on column " + str(col) + ", state " + str(sn))
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestLossTable)
 
