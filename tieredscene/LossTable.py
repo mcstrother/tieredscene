@@ -264,8 +264,8 @@ class LossTable(object):
             for this_label in label_set.middle:
                 for previous_label in label_set.middle:
                     ftables = _FTables(hslc, label_set, image_array, self._table[:,column-1], column, previous_label, this_label)
-                    for i in xrange(n):
-                        for j in xrange(i, n):
+                    for i in xrange(n+1):
+                        for j in xrange(i, n+1):
                             curr_state = State(i, j, this_label, label_set, image_array)
                             #best_prev_state, best_prev_value = ftables.get_best_prev_state(i, j)
                             best_prev_state, best_prev_value = self._brute_get_best_previous(curr_state, column)
