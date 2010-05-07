@@ -46,8 +46,22 @@ class _FTables(object):
                                               h(i,j)[1], 
                                               h(i,j)[2])
         
-    def get_best_prev_i_j(self, i, j, relative_positioning):
-        return self._fs[relative_positioning](i,j)
+    def get_best_prev_i_j(self, i, j, rel_pos = None):
+        if not rel_pos is None:
+            return self._fs[rel_pos](i,j)
+        
+        best_prev_pair= None
+        best_prev_state_value = None
+        for rel_pos in xrange(6):
+            f_out = self.get_best_prev_i_j(i, j, rel_pos)
+            curr_value = f_out[0]
+            if best_prev_pair is None or curr_value < best_prev_state_value:
+                ib = f_out[1]
+                jb = f_out[2]
+                best_prev_pair = (ib,jb)
+                best_prev_state_value = curr_value
+        ib, jb = best_prev_pair
+        return (ib, jb, curr_value)
 
     def _get_E_prime(self, n, label_set, image_array, loss_table_column,  col, previous_label, Ib, Jb, rel_pos):
         """Caclulated E' in O(n^2) time as described in equation 19 of the Felzenszwalb paper
@@ -243,20 +257,13 @@ class LossTable(object):
                     for i in xrange(n):
                         for j in xrange(i, n):
                             curr_state = State(i, j, this_label, label_set, image_array)
-                            best_prev_state= None
-                            best_prev_state_value = None
-                            for rel_pos in xrange(6):
-                                f_out = ftables.get_best_prev_i_j(i, j, rel_pos)
-                                curr_value = f_out[0]
-                                if best_prev_state is None or curr_value < best_prev_state_value:
-                                    ib = f_out[1]
-                                    jb = f_out[2]
-                                    best_prev_state = State(ib, jb, previous_label, label_set, image_array)
-                                    best_prev_state_value = curr_value
-                            self._table[curr_state.as_int(), column] = best_prev_state_value + u.get_loss(curr_state, column)
+                            ib, jb, best_prev_value = ftables.get_best_prev_i_j(i, j)
+                            best_prev_state = State(ib, jb, previous_label, label_set, image_array)
+                            self._table[curr_state.as_int(), column] = best_prev_value + u.get_loss(curr_state, column)
                             self._trace[curr_state.as_int(), column] = best_prev_state.as_int()
         self._label_set = label_set
         self._image_array = image_array
+        self._u = u
 
 
     def get_optimal_state_list(self):
