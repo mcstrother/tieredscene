@@ -12,22 +12,6 @@ from tieredscene.Pixel import Pixel
 import Image
 from tieredscene.lossfunctions import Simple
 
-def _get_brute_loss(function, image_array, col, s1, s2):
-    """Calculate the horizontal smoothness loss
-    by brute force.
-    """
-    brute_loss = 0
-    for row in xrange(image_array.shape[0]):
-        if s1 is None:
-            p1 = None
-            l1 = None
-        else:
-            p1 = Pixel(image_array, col-1, row)
-            l1 = s1.get_row_label(row)
-        p2 = Pixel(image_array, col, row)
-        l2 = s2.get_row_label(row)
-        brute_loss += function.horizontal_loss(p1,l1, p2, l2)
-    return brute_loss
 
 class TestHorizontalSmoothnessLossCache(unittest.TestCase):
     
@@ -55,7 +39,7 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
                 p2 = Pixel(self.image_array, 0, row)
                 l2 = state.get_row_label(row)
                 brute_loss += self.function.horizontal_loss(None, None, p2, l2)
-            self.assertEqual(brute_loss, _get_brute_loss(self.function, self.image_array, 0, None, state))
+            self.assertEqual(brute_loss, self.function.brute_get_loss( self.image_array, 0, None, state))
             cache_loss = 0
             if state.i>0:
                 cache_loss += self.hor_cache.table[state.i-1, 0, 0, state.tee]
@@ -70,7 +54,7 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
         col = 3
         t = self.s2.tee
         b = self.s2.bee
-        brute_loss = _get_brute_loss(self.function, self.image_array,col, self.s2, self.s3)
+        brute_loss = self.function.brute_get_loss( self.image_array,col, self.s2, self.s3)
         cache_loss = 0
         #3,7,1
         #2,5,0
@@ -89,42 +73,42 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
     def testGetLoss1(self):
         """Test HorizontalSmoothnessLossCache with ib = jb= i = j = 0
         """
-        brute_loss = _get_brute_loss(self.function, self.image_array, 10, self.s1, self.s1)
+        brute_loss = self.function.brute_get_loss( self.image_array, 10, self.s1, self.s1)
         cache_loss = self.hor_cache.get_loss(self.s1, self.s1, 10)
         self.assertAlmostEqual(brute_loss, cache_loss)
     
     def testGetLoss2(self):
         """Test HorizontalSmoothnessLossCache with ib = jb = 0 <  i < j
         """
-        brute_loss = _get_brute_loss(self.function, self.image_array, 10, self.s1, self.s2)
+        brute_loss = self.function.brute_get_loss( self.image_array, 10, self.s1, self.s2)
         cache_loss = self.hor_cache.get_loss(self.s1, self.s2, 10)
         self.assertAlmostEqual(cache_loss, brute_loss)
     
     def testGetLoss3(self):
         """Test HorizontalSmoothnessLossCache with relative_positioning 1
         """
-        brute_loss = _get_brute_loss(self.function, self.image_array, 10, self.s2, self.s3)
+        brute_loss = self.function.brute_get_loss( self.image_array, 10, self.s2, self.s3)
         cache_loss = self.hor_cache.get_loss(self.s2, self.s3, 10)
         self.assertAlmostEqual(cache_loss, brute_loss)
     
     def testGetLoss4(self):
         """Test HorizontalSmoothnessLossCache with relative_positioning 4
         """
-        brute_loss = _get_brute_loss(self.function, self.image_array, 10, self.s3, self.s2)
+        brute_loss = self.function.brute_get_loss( self.image_array, 10, self.s3, self.s2)
         cache_loss = self.hor_cache.get_loss(self.s3, self.s2, 10)
         self.assertAlmostEqual(cache_loss, brute_loss)
     
     def testGetLoss5(self):
         """Test HorizontalSmoothnessLossCache with relative_positioning 5
         """
-        brute_loss = _get_brute_loss(self.function, self.image_array, 10, self.s4, self.s2)
+        brute_loss = self.function.brute_get_loss( self.image_array, 10, self.s4, self.s2)
         cache_loss = self.hor_cache.get_loss(self.s4, self.s2, 10)
         self.assertAlmostEqual(cache_loss, brute_loss)
     
     def testGetLoss6(self):
         """Test HorizontalSmoothnessLossCache with relative_positioning 0
         """
-        brute_loss = _get_brute_loss(self.function, self.image_array, 10, self.s2, self.s4)
+        brute_loss = self.function.brute_get_loss( self.image_array, 10, self.s2, self.s4)
         cache_loss = self.hor_cache.get_loss(self.s2, self.s4, 10)
         self.assertAlmostEqual(cache_loss, brute_loss)
     

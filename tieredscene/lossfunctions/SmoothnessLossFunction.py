@@ -3,7 +3,7 @@ Created on Apr 4, 2010
 
 @author: mcstrother
 '''
-
+from tieredscene.Pixel import Pixel
 
 class SmoothnessLossFunction(object):
     _label_set = None
@@ -49,6 +49,39 @@ class SmoothnessLossFunction(object):
         """
         raise NotImplementedError()
     
+    
+    def brute_get_loss(self, image_array, column, state1, state2):
+        """Get the HorizontalSmoothnessLoss between two states.
+        
+        This is done by brute force.  For an efficient implementation
+        of get_loss, see HorizontalSmoothnessLossCache
+        
+        Parameters
+        ----------
+        `image_array` :
+        `column` : an integer representing the column number of interest
+        `state1` : a state object 
+        `state2` : a state object
+        
+        Returns
+        -------
+        loss :  the horizontal smoothness loss between the two states
+        """
+        loss = 0
+        for row in xrange(image_array.shape[0]):
+            if state1 is None:
+                p1 = None
+                l1 = None
+            else:
+                p1 = Pixel(image_array, column-1, row)
+                l1 = state1.get_row_label(row)
+            p2 = Pixel(image_array, column, row)
+            l2 = state2.get_row_label(row)
+            loss += self.horizontal_loss(p1,l1, p2, l2)
+        return loss
+        
+        
+        
     @property
     def label_set(self):
         if self._label_set is None:
