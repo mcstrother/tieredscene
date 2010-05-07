@@ -39,7 +39,7 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
                 p2 = Pixel(self.image_array, 0, row)
                 l2 = state.get_row_label(row)
                 brute_loss += self.function.horizontal_loss(None, None, p2, l2)
-            self.assertEqual(brute_loss, self.function.brute_get_loss( self.image_array, 0, None, state))
+            self.assertEqual(brute_loss, self.function.brute_get_loss(self.image_array, 0, None, state))
             cache_loss = 0
             if state.i>0:
                 cache_loss += self.hor_cache.table[state.i-1, 0, 0, state.tee]
@@ -118,7 +118,7 @@ class TestHorizontalSmoothnessLossCache(unittest.TestCase):
         hor_cache =  HorizontalSmoothnessLossCache(image_array, function)
         s1 = State(1, 1, function.label_set.middle[0], function.label_set, image_array)
         s2 = State(1, 2, function.label_set.middle[0], function.label_set, image_array)
-        brute_loss = _get_brute_loss(function, image_array, 1, s1, s2)
+        brute_loss = function.brute_get_loss( image_array, 1, s1, s2)
         cache_loss = hor_cache.get_loss(s1, s2, 1)
         self.assertAlmostEqual(cache_loss, brute_loss)
         
