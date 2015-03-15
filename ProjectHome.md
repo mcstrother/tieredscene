@@ -1,0 +1,1 @@
+Done as a final project for Washington University in St. Louis's CSE 559 course, this is an implementation of the algorithm described in the paper "Tiered Scene Labeling with Dynamic Programming" by Felzenszwalb and Veksler.
